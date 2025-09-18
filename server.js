@@ -1,121 +1,92 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 8080;
+// Servir carpeta "public" con index.html, script.js y styles.css
+app.use(express.static("public"));
 
-// Servir archivos estáticos
-app.use(express.static(path.join(__dirname, "public")));
+// Lista de jugadores conectados
+let players = {};
 
 // ================================
-// 🎮 Gestión de jugadores y salas
+// 👤 Conexión de jugadores
 // ================================
-let waitingPlayer = null; // jugador esperando rival
-let games = {}; // { roomId: { players: [name1, name2], moves: {} } }
-
 io.on("connection", (socket) => {
-  console.log("✅ Nuevo jugador conectado:", socket.id);
+  console.log("🔌 Nuevo jugador conectado:", socket.id);
 
-  // Cuando un jugador se une
-  socket.on("joinGame", (playerName) => {
-    socket.playerName = playerName;
+  // Un jugador se une al juego
+  socket.on("playerJoined", (name) => {
+    players[socket.id] = { name: name, move: null };
+    console.log(`✅ Jugador ${name} se ha unido`);
 
-    if (waitingPlayer) {
-      // Crear sala con 2 jugadores
-      const roomId = `${waitingPlayer.id}#${socket.id}`;
-      socket.join(roomId);
-      waitingPlayer.join(roomId);
+    // Avisar a todos los demás que llegó un rival
+    socket.broadcast.emit("opponentJoined", name);
+  });
 
-      games[roomId] = {
-        players: [waitingPlayer.playerName, socket.playerName],
-        moves: {},
-      };
+  // Jugador hace una jugada
+  socket.on("playerMove", (data) => {
+    if (!players[socket.id]) return;
 
-      // Avisar a ambos
-      io.to(roomId).emit("opponentFound", (name) =>
-        name === socket.playerName ? waitingPlayer.playerName : socket.playerName
-      );
+    players[socket.id].move = data.move;
+    console.log(`🎮 ${data.name} eligió ${data.move}`);
 
-      // Para cada jugador, mandamos el nombre del rival
-      io.to(waitingPlayer.id).emit("opponentFound", socket.playerName);
-      io.to(socket.id).emit("opponentFound", waitingPlayer.playerName);
+    // Avisar a los demás la jugada
+    socket.broadcast.emit("opponentMove", data.move);
 
-      console.log(
-        `🎮 Sala creada: ${waitingPlayer.playerName} vs ${socket.playerName}`
-      );
+    // Buscar al otro jugador
+    const opponentId = Object.keys(players).find((id) => id !== socket.id);
+    if (opponentId && players[opponentId].move) {
+      const result = getWinner(players[socket.id], players[opponentId]);
 
-      waitingPlayer = null; // reset
-    } else {
-      // Esperando un rival
-      waitingPlayer = socket;
-      console.log(`${playerName} esperando un rival...`);
+      // Enviar resultado a ambos jugadores
+      io.to(socket.id).emit("roundResult", result);
+      io.to(opponentId).emit("roundResult", result);
+
+      // Reset de jugadas para la siguiente ronda
+      players[socket.id].move = null;
+      players[opponentId].move = null;
     }
   });
 
-  // Jugada de un jugador
-  socket.on("playerMove", ({ name, move }) => {
-    const roomId = [...socket.rooms].find((r) => r !== socket.id);
-    if (!roomId || !games[roomId]) return;
-
-    games[roomId].moves[name] = move;
-
-    // Si ambos jugadores ya hicieron su jugada
-    if (
-      games[roomId].moves[games[roomId].players[0]] &&
-      games[roomId].moves[games[roomId].players[1]]
-    ) {
-      const p1 = games[roomId].players[0];
-      const p2 = games[roomId].players[1];
-      const move1 = games[roomId].moves[p1];
-      const move2 = games[roomId].moves[p2];
-
-      let winner = "empate";
-      if (
-        (move1 === "piedra" && move2 === "tijera") ||
-        (move1 === "papel" && move2 === "piedra") ||
-        (move1 === "tijera" && move2 === "papel")
-      ) {
-        winner = p1;
-      } else if (move1 !== move2) {
-        winner = p2;
-      }
-
-      io.to(roomId).emit("roundResult", {
-        playerMove: move1,
-        opponentMove: move2,
-        winner,
-      });
-
-      // Reset jugadas
-      games[roomId].moves = {};
-    }
-  });
-
-  // Desconexión
+  // Jugador se desconecta
   socket.on("disconnect", () => {
-    console.log("❌ Jugador desconectado:", socket.playerName || socket.id);
-
-    if (waitingPlayer && waitingPlayer.id === socket.id) {
-      waitingPlayer = null;
-    }
-
-    // Eliminar al jugador de su sala
-    for (const roomId in games) {
-      if (games[roomId].players.includes(socket.playerName)) {
-        io.to(roomId).emit("opponentFound", "Desconectado");
-        delete games[roomId];
-      }
-    }
+    console.log("❌ Jugador desconectado:", socket.id);
+    delete players[socket.id];
   });
 });
 
-// Iniciar servidor
+// ================================
+// 🏆 Función para decidir ganador
+// ================================
+function getWinner(p1, p2) {
+  const { name: name1, move: move1 } = p1;
+  const { name: name2, move: move2 } = p2;
+
+  if (move1 === move2) {
+    return { winner: "draw" };
+  }
+
+  if (
+    (move1 === "piedra" && move2 === "tijera") ||
+    (move1 === "papel" && move2 === "piedra") ||
+    (move1 === "tijera" && move2 === "papel")
+  ) {
+    return { winner: name1 };
+  } else {
+    return { winner: name2 };
+  }
+}
+
+// ================================
+// 🚀 Iniciar servidor
+// ================================
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });
+
 
