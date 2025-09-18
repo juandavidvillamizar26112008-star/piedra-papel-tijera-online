@@ -1,12 +1,14 @@
-/* 🎮 Estilos generales */
+/* ==============================
+🎨 Estilos generales
+============================== */
 body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #fff;
   margin: 0;
   padding: 0;
-  font-family: 'Orbitron', sans-serif;
-  background: linear-gradient(135deg, #0d1b2a, #1b263b);
-  color: #fff;
   text-align: center;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,159 +18,105 @@ body {
 .screen {
   display: none;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  width: 90%;
+  max-width: 500px;
+  animation: fadeIn 0.8s ease-in-out;
 }
 
 .screen.active {
   display: flex;
 }
 
-/* Título */
-.title {
-  font-size: 3rem;
-  color: #0ff;
-  text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
-  margin-bottom: 20px;
+/* Títulos */
+h1, h2, h3 {
+  margin: 10px 0;
+  text-shadow: 0 0 10px #00e6ff, 0 0 20px #00e6ff;
 }
 
 /* Input nombre */
-#playerNameInput {
-  padding: 12px;
-  font-size: 1.2rem;
+input {
+  padding: 10px;
   border-radius: 10px;
   border: none;
-  outline: none;
-  margin-bottom: 15px;
+  width: 80%;
+  font-size: 1rem;
   text-align: center;
 }
 
 /* Botones */
 button {
-  padding: 12px 24px;
-  font-size: 1.2rem;
+  background: #00c6ff;
   border: none;
-  border-radius: 12px;
+  padding: 12px 20px;
+  margin: 5px;
+  border-radius: 15px;
+  font-size: 1rem;
+  color: #fff;
   cursor: pointer;
-  margin: 10px;
   font-weight: bold;
-  transition: 0.3s;
+  transition: transform 0.2s ease, background 0.3s;
 }
 
 button:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 15px #0ff;
+  background: #0072ff;
 }
 
-#startBtn {
-  background: #0ff;
-  color: #000;
-}
-
-/* Zona de juego */
-#gameScreen {
-  flex-direction: column;
-  width: 90%;
-  max-width: 800px;
-}
-
-#welcomeMsg {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #ff00ff;
-  text-shadow: 0 0 15px #ff00ff;
-}
-
-/* Puntos */
-#scoreBoard {
+/* Juego */
+.game-area {
   display: flex;
   justify-content: space-around;
+  align-items: center;
   width: 100%;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 
-#scoreBoard p {
-  font-size: 1.5rem;
-  color: #0ff;
-  text-shadow: 0 0 10px #0ff;
-}
-
-/* Área del juego */
-#gameArea {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.playerSide h3 {
-  font-size: 1.3rem;
-  margin-bottom: 10px;
-}
-
-.choice {
-  font-size: 4rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 20px;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 auto;
-  box-shadow: 0 0 15px #ff0;
-  transition: all 0.3s ease;
-}
-
-.choice.glow {
-  animation: glowAnim 1s infinite alternate;
-}
-
-@keyframes glowAnim {
-  from { box-shadow: 0 0 15px #ff0; }
-  to { box-shadow: 0 0 30px #f0f; }
+.player-area {
+  flex: 1;
 }
 
 .vs {
   font-size: 2rem;
-  color: #ff0;
-  text-shadow: 0 0 10px #ff0, 0 0 20px #f0f;
+  animation: pulse 1.5s infinite alternate;
 }
 
-/* Botones de jugadas */
-#controls {
-  margin-top: 20px;
+/* Jugadas */
+#playerChoice, #opponentChoice {
+  font-size: 4rem;
+  margin: 10px 0;
 }
 
-.moveBtn {
-  background: #ff00ff;
-  color: #fff;
-  font-size: 1.2rem;
-}
-
-.moveBtn:hover {
-  background: #ff55ff;
+.choice.glow {
+  animation: glow 0.6s ease-in-out;
 }
 
 /* Texto resultado */
 #resultText {
-  font-size: 1.5rem;
-  margin-top: 15px;
-  color: #0ff;
-  text-shadow: 0 0 10px #0ff;
+  font-size: 1.3rem;
+  margin-top: 20px;
+  font-weight: bold;
+  text-shadow: 0 0 8px #ff00cc, 0 0 15px #ff00cc;
 }
 
-/* Botón música */
-#musicBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #0ff;
-  color: #000;
-  font-size: 1rem;
-  padding: 10px 20px;
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes pulse {
+  from { transform: scale(1); color: #fff; }
+  to { transform: scale(1.2); color: #ffeb3b; }
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 5px #fff, 0 0 15px #00f; }
+  to { text-shadow: 0 0 15px #fff, 0 0 25px #0ff; }
+}
