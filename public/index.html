@@ -3,62 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Piedra, Papel o Tijera Online</title>
-  <link rel="stylesheet" href="style.css">
+  <title>✊ ✋ ✌ Piedra, Papel o Tijera Online</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(to bottom, #1e1e1e, #000);
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin: 20px 0;
+      color: #ffcc00;
+    }
+
+    #startContainer {
+      margin-top: 50px;
+    }
+
+    #startContainer input {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    #startContainer button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #ffcc00;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #gameContainer {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .gameBoard {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px 0;
+    }
+
+    .playerSide {
+      margin: 0 50px;
+    }
+
+    .choice {
+      font-size: 50px;
+      margin: 10px 0;
+    }
+
+    .versus {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff4444;
+    }
+
+    .controls button {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #ffcc00;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #resultMessage {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #musicToggle {
+      margin: 15px;
+      padding: 5px 10px;
+    }
+  </style>
 </head>
 <body>
-  <!-- Pantalla inicial -->
-  <div id="loginScreen" class="screen active">
-    <h1 class="title">✊✋✌️ Piedra, Papel o Tijera Online</h1>
-    <div class="name-input">
-      <input type="text" id="playerNameInput" placeholder="Escribe tu nombre...">
-      <button id="startBtn">Comenzar</button>
-    </div>
+  <h1>✊ ✋ ✌ Piedra, Papel o Tijera Online</h1>
+
+  <!-- Pantalla de inicio -->
+  <div id="startContainer">
+    <input type="text" id="playerNameInput" placeholder="Escribe tu nombre...">
+    <button id="startButton">Comenzar</button>
   </div>
 
   <!-- Pantalla del juego -->
-  <div id="gameScreen" class="screen">
-    <h2 id="welcomeMsg">Bienvenido, jugador!</h2>
+  <div id="gameContainer">
+    <h2 id="welcomeMessage">Bienvenido, jugador!</h2>
+    <button id="musicToggle">🎵 Música: OFF</button>
 
-    <!-- Botón música -->
-    <button id="musicBtn">🎵 Música: OFF</button>
-
-    <!-- Marcador -->
-    <div id="scoreBoard">
+    <div class="gameBoard">
       <div class="playerSide">
-        <h3 id="playerLabel">Tú</h3>
+        <h3>Tú</h3>
         <div id="playerChoice" class="choice">❓</div>
         <p id="playerScore">Tus puntos: 0</p>
       </div>
 
-      <div class="vs">⚡ VS ⚡</div>
+      <div class="versus">⚡ VS ⚡</div>
 
       <div class="playerSide">
-        <h3 id="opponentLabel">Rival</h3>
+        <h3 id="opponentLabel">Rival: <span id="opponentName">Esperando...</span></h3>
         <div id="opponentChoice" class="choice">❓</div>
         <p id="opponentScore">Puntos Rival: 0</p>
       </div>
     </div>
 
-    <!-- Botones de jugada -->
-    <div id="controls">
-      <button class="moveBtn" data-move="piedra">✊ Piedra</button>
-      <button class="moveBtn" data-move="papel">✋ Papel</button>
-      <button class="moveBtn" data-move="tijera">✌️ Tijera</button>
+    <div class="controls">
+      <button onclick="makeChoice('piedra')">✊ Piedra</button>
+      <button onclick="makeChoice('papel')">✋ Papel</button>
+      <button onclick="makeChoice('tijera')">✌️ Tijera</button>
     </div>
 
-    <p id="resultText">Esperando jugada...</p>
+    <p id="resultMessage">Esperando jugada...</p>
   </div>
 
-  <!-- Música -->
-  <audio id="bgMusic" loop autoplay>
-    <source src="music.mp3" type="audio/mpeg">
-    Tu navegador no soporta audio.
-  </audio>
-
-  <!-- Librería socket.io -->
+  <!-- Cliente de Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- Script del juego -->
   <script src="script.js"></script>
 </body>
 </html>
