@@ -1,13 +1,11 @@
 {
-  "name": "piedra-papel-tijera-multijugador",
+  "name": "snake-multijugador",
   "version": "1.0.0",
-  "description": "Juego Piedra Papel Tijera multijugador con salas",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.18.2",
     "socket.io": "^4.7.2"
   }
