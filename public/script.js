@@ -38,7 +38,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
   }
 
   // Pasar a pantalla de juego
-  document.getElementById("startScreen").classList.remove("active");
+  document.getElementById("loginScreen").classList.remove("active"); // ✅ corregido
   document.getElementById("gameScreen").classList.add("active");
 
   document.getElementById("welcomeMsg").innerText = `Bienvenido, ${playerName}!`;
@@ -102,8 +102,8 @@ socket.on("roundResult", (data) => {
   }
 
   // Actualizar marcador
-  document.getElementById("playerScore").innerText = playerScore;
-  document.getElementById("opponentScore").innerText = opponentScore;
+  document.getElementById("playerScore").innerText = `Tus puntos: ${playerScore}`;
+  document.getElementById("opponentScore").innerText = `Puntos rival: ${opponentScore}`;
 });
 
 // ================================
@@ -111,9 +111,9 @@ socket.on("roundResult", (data) => {
 // ================================
 function getEmoji(move) {
   switch (move) {
-    case "rock": return "✊";
-    case "paper": return "✋";
-    case "scissors": return "✌️";
+    case "piedra": return "✊";
+    case "papel": return "✋";
+    case "tijera": return "✌️";
     default: return "❓";
   }
 }
