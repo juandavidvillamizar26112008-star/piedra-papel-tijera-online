@@ -1,6 +1,4 @@
-// script.js - Versión extendida con muchas funciones y manejo completo
-
-// Variables globales para el estado del juego
+// script.js - Código extendido para el juego
 let playerName = "";
 let gameMode = ""; // "offline" o "online"
 let round = 1;
@@ -10,16 +8,12 @@ let canvas, ctx, animationFrame;
 
 // Inicialización del juego y asignación de eventos
 function initGame() {
-  // Eventos para botones de inicio
   document.getElementById("start-offline").addEventListener("click", startOffline);
   document.getElementById("start-online").addEventListener("click", startOnline);
-
-  // Eventos para reiniciar marcador y juego
   document.getElementById("reset-score").addEventListener("click", resetScore);
   document.getElementById("restart-game").addEventListener("click", restartGame);
   document.getElementById("clear-history").addEventListener("click", clearHistory);
 
-  // Asignar eventos para las elecciones de jugadas
   document.querySelectorAll(".choice").forEach(btn => {
     btn.addEventListener("click", () => {
       const choice = btn.getAttribute("data-choice");
@@ -27,19 +21,15 @@ function initGame() {
     });
   });
 
-  // Evento para el chat online
   document.getElementById("chat-send").addEventListener("click", sendChatMessage);
-
-  // Eventos adicionales desde el menú
   document.getElementById("menu-offline").addEventListener("click", () => switchMode("offline"));
   document.getElementById("menu-online").addEventListener("click", () => switchMode("online"));
   document.getElementById("menu-tutorial").addEventListener("click", showTutorial);
 
-  // Inicializar el canvas para animaciones
   initCanvas();
 }
 
-// Función para iniciar el modo offline
+// Inicia el modo offline
 function startOffline() {
   playerName = document.getElementById("player-name").value.trim();
   if (!playerName) {
@@ -51,7 +41,7 @@ function startOffline() {
   logEvent("Modo Offline iniciado para " + playerName);
 }
 
-// Función para iniciar el modo online
+// Inicia el modo online y se conecta al servidor
 function startOnline() {
   playerName = document.getElementById("player-name").value.trim();
   if (!playerName) {
@@ -59,18 +49,17 @@ function startOnline() {
     return;
   }
   gameMode = "online";
-  // Conectar con el servidor usando Socket.io
   socket = io();
-  socket.emit("playerJoined", { name: playerName });
+  // Enviar el modo "online" para el emparejamiento
+  socket.emit("playerJoined", { name: playerName, mode: "online" });
   socketListeners();
   switchToGameScreen();
-  // Mostrar secciones online
   document.getElementById("chat-section").style.display = "block";
   document.getElementById("stats-section").style.display = "block";
   logEvent("Modo Online iniciado para " + playerName);
 }
 
-// Función para alternar entre modos mediante el menú superior
+// Cambiar modo desde el menú
 function switchMode(mode) {
   if (mode === "offline" || mode === "online") {
     gameMode = mode;
@@ -83,10 +72,9 @@ function switchMode(mode) {
   }
 }
 
-// Configurar eventos del socket para modo online
+// Configuración de eventos Socket.io para online
 function socketListeners() {
   socket.on("gameResult", data => {
-    // Mostrar resultados enviados por el servidor
     displayResult(data.message);
     if (data.result) updateScore(data.result);
     addHistoryEntry(
@@ -106,24 +94,23 @@ function socketListeners() {
   });
 }
 
-// Transición de la pantalla de login a la pantalla del juego
+// Transición a la pantalla del juego
 function switchToGameScreen() {
   document.getElementById("login-section").style.display = "none";
   document.getElementById("game-section").style.display = "block";
 }
 
-// Función para procesar las elecciones del usuario
+// Procesa la elección del jugador
 function processChoice(choice) {
   if (gameMode === "offline") {
     playOffline(choice);
   } else if (gameMode === "online" && socket) {
     socket.emit("playerMove", { name: playerName, choice: choice });
   }
-  // Registro de la acción del jugador
   logEvent(playerName + " eligió " + choice);
 }
 
-// Juego en modo offline: la computadora elige al azar
+// Juego modo offline
 function playOffline(playerChoice) {
   const options = ["piedra", "papel", "tijera"];
   const compChoice = options[Math.floor(Math.random() * options.length)];
@@ -133,7 +120,7 @@ function playOffline(playerChoice) {
   addHistoryEntry(round++, playerName, playerChoice, "Computadora", compChoice, result);
 }
 
-// Función para determinar el ganador basado en las reglas del juego
+// Determina el ganador
 function determineWinner(choice1, choice2) {
   if (choice1 === choice2) {
     return "Empate";
@@ -149,14 +136,14 @@ function determineWinner(choice1, choice2) {
   }
 }
 
-// Actualiza el marcador basándose en el resultado del juego offline
+// Actualiza el marcador en base al resultado offline
 function updateScoreByResult(result) {
   if (result === "Ganaste") updateScore("win");
   else if (result === "Perdiste") updateScore("loss");
   else updateScore("draw");
 }
 
-// Función para actualizar el marcador de victorias, derrotas y empates
+// Actualiza el marcador
 function updateScore(result) {
   const winsElem = document.getElementById("wins");
   const lossesElem = document.getElementById("losses");
@@ -170,12 +157,12 @@ function updateScore(result) {
   }
 }
 
-// Función para mostrar los resultados en la pantalla
+// Muestra resultado en la pantalla
 function displayResult(message) {
   document.getElementById("result").textContent = message;
 }
 
-// Función para agregar entradas al historial de partidas y actualizar la tabla
+// Añade entrada al historial de partidas
 function addHistoryEntry(roundNum, player, playerChoice, opponent, opponentChoice, outcome) {
   history.push({ round: roundNum, player, playerChoice, opponent, opponentChoice, outcome });
   const tbody = document.querySelector("#history-table tbody");
@@ -184,14 +171,14 @@ function addHistoryEntry(roundNum, player, playerChoice, opponent, opponentChoic
   tbody.appendChild(row);
 }
 
-// Función para limpiar el historial de partidas
+// Limpia el historial
 function clearHistory() {
   history = [];
   document.querySelector("#history-table tbody").innerHTML = "";
   logEvent("Historial limpio.");
 }
 
-// Reiniciar marcador y pantalla de resultados
+// Reinicia solo el marcador
 function resetScore() {
   document.getElementById("wins").textContent = 0;
   document.getElementById("losses").textContent = 0;
@@ -199,7 +186,7 @@ function resetScore() {
   logEvent("Marcador reiniciado.");
 }
 
-// Función para reiniciar el juego completo (incluye historial y resultados)
+// Reinicia juego completo
 function restartGame() {
   resetScore();
   displayResult("Juego reiniciado.");
@@ -208,7 +195,7 @@ function restartGame() {
   logEvent("Juego completo reiniciado.");
 }
 
-// Función para enviar mensajes en el chat (modo online)
+// Envía mensaje de chat en línea
 function sendChatMessage() {
   const msgInput = document.getElementById("chat-input");
   const message = msgInput.value.trim();
@@ -220,7 +207,7 @@ function sendChatMessage() {
   }
 }
 
-// Función para agregar mensajes al chat
+// Añade mensaje al chat
 function addChatMessage(name, message) {
   const chatBox = document.getElementById("chat-messages");
   const p = document.createElement("p");
@@ -229,7 +216,7 @@ function addChatMessage(name, message) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Inicialización y animación del canvas
+// Inicializa y anima el canvas
 function initCanvas() {
   canvas = document.getElementById("gameCanvas");
   if (!canvas) return;
@@ -237,7 +224,6 @@ function initCanvas() {
   let posX = 0;
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Dibujar una figura en movimiento (círculo)
     ctx.fillStyle = "#007BFF";
     ctx.beginPath();
     ctx.arc(50 + (posX % (canvas.width - 100)), canvas.height / 2, 20, 0, Math.PI * 2);
@@ -248,12 +234,12 @@ function initCanvas() {
   animate();
 }
 
-// Función para detener la animación del canvas (si es necesario)
+// Detiene la animación del canvas si es necesario
 function stopCanvasAnimation() {
   if (animationFrame) cancelAnimationFrame(animationFrame);
 }
 
-// Función auxiliar para mostrar el tutorial mediante un modal
+// Muestra el tutorial (modal)
 function showTutorial() {
   const tutorialModal = document.getElementById("tutorial-modal");
   if (tutorialModal) {
@@ -261,21 +247,18 @@ function showTutorial() {
   }
 }
 
-// Función auxiliar para registrar eventos en consola (útil para debugging)
+// Registra eventos en consola para debugging
 function logEvent(info) {
   console.log(new Date().toLocaleTimeString() + " - " + info);
 }
 
-// Función para manejar eventos antes de cerrar o refrescar la página
+// Confirma antes de salir de la página
 function beforeUnloadHandler(e) {
   const confirmationMessage = "¿Seguro que quieres salir? Tu sesión de juego se perderá.";
   (e || window.event).returnValue = confirmationMessage;
   return confirmationMessage;
 }
 
-// Agregar evento para notificar antes de salir
 window.addEventListener("beforeunload", beforeUnloadHandler);
-
-// Inicializar el juego cuando el DOM esté cargado
 document.addEventListener("DOMContentLoaded", initGame);
 
