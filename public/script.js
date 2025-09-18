@@ -1,7 +1,7 @@
 // ================================
 // 🎵 Música de fondo
 // ================================
-const music = new Audio("music.mp3"); // tu archivo de música en /public
+const music = new Audio("music.mp3"); // pon tu archivo de música aquí
 music.loop = true;
 let musicPlaying = false;
 
@@ -11,7 +11,7 @@ document.getElementById("musicBtn").addEventListener("click", () => {
     document.getElementById("musicBtn").innerText = "🎵 Música: OFF";
   } else {
     music.play();
-    document.getElementById("musicBtn").innerText = "🎵 Música: ON";
+    document.getElementById("musicBtn").innerText = "🔊 Música: ON";
   }
   musicPlaying = !musicPlaying;
 });
@@ -19,10 +19,10 @@ document.getElementById("musicBtn").addEventListener("click", () => {
 // ================================
 // ⚡ Conexión con Socket.IO
 // ================================
-const socket = io();
+const socket = io(); // Se conecta al servidor donde esté corriendo socket.io
 
 let playerName = "";
-let opponentName = "Rival";
+let rivalName = "";
 let playerChoice = "";
 let opponentChoice = "";
 let playerScore = 0;
@@ -38,10 +38,8 @@ document.getElementById("startBtn").addEventListener("click", () => {
     return;
   }
 
-  // Pasar a pantalla de juego
-  document.getElementById("loginScreen").classList.remove("active");
-  document.getElementById("gameScreen").classList.add("active");
-
+  // Mostrar pantalla de juego
+  document.querySelector(".name-input").style.display = "none";
   document.getElementById("welcomeMsg").innerText = `Bienvenido, ${playerName}!`;
 
   // Avisar al servidor que un jugador se conectó
@@ -57,7 +55,7 @@ moves.forEach((btn) => {
   btn.addEventListener("click", () => {
     playerChoice = btn.getAttribute("data-move");
 
-    // Mostrar jugada del jugador con animación
+    // Mostrar jugada del jugador
     const playerChoiceEl = document.getElementById("playerChoice");
     playerChoiceEl.innerText = getEmoji(playerChoice);
     playerChoiceEl.classList.add("glow");
@@ -75,8 +73,11 @@ moves.forEach((btn) => {
 // ================================
 // 📡 Escuchar jugada del oponente
 // ================================
-socket.on("opponentMove", (move) => {
-  opponentChoice = move;
+socket.on("opponentMove", (data) => {
+  opponentChoice = data.move;
+  rivalName = data.name;
+
+  document.getElementById("opponentLabel").innerText = `Rival: ${rivalName}`;
   const opponentChoiceEl = document.getElementById("opponentChoice");
   opponentChoiceEl.innerText = getEmoji(opponentChoice);
   opponentChoiceEl.classList.add("glow");
@@ -98,35 +99,13 @@ socket.on("roundResult", (data) => {
     resultText.innerText = "🎉 ¡Ganaste esta ronda!";
     playerScore++;
   } else {
-    resultText.innerText = `💀 ${opponentName} ganó la ronda...`;
+    resultText.innerText = "💀 Perdiste esta ronda...";
     opponentScore++;
   }
 
   // Actualizar marcador
   document.getElementById("playerScore").innerText = `Tus puntos: ${playerScore}`;
-  document.getElementById("opponentScore").innerText = `Puntos ${opponentName}: ${opponentScore}`;
-});
-
-// ================================
-// 👥 Actualizar lista de jugadores
-// ================================
-socket.on("updatePlayers", (players) => {
-  const rival = players.find((p) => p !== playerName);
-  if (rival) {
-    opponentName = rival;
-    document.getElementById("opponentLabel").innerText = opponentName;
-  }
-});
-
-// ================================
-// 🎮 Inicio oficial del juego (cuando ya hay 2 jugadores)
-// ================================
-socket.on("gameStart", ({ players }) => {
-  const rival = players.find((p) => p !== playerName);
-  if (rival) {
-    opponentName = rival;
-    document.getElementById("opponentLabel").innerText = opponentName;
-  }
+  document.getElementById("opponentScore").innerText = `Puntos Rival: ${opponentScore}`;
 });
 
 // ================================
