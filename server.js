@@ -1,6 +1,3 @@
-// ================================
-// 📌 Piedra, Papel o Tijera Online - Soporte para múltiples salas
-// ================================
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -10,138 +7,115 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Servir archivos estáticos desde /public
+const PORT = process.env.PORT || 8080;
+
+// Servir archivos estáticos
 app.use(express.static(path.join(__dirname, "public")));
 
 // ================================
-// 🎮 Gestión de salas
+// 🎮 Gestión de jugadores y salas
 // ================================
-let rooms = {}; // { roomId: { players: [ {id, name, move} ] } }
-let roomCounter = 1;
+let waitingPlayer = null; // jugador esperando rival
+let games = {}; // { roomId: { players: [name1, name2], moves: {} } }
 
-// Encontrar o crear sala
-function findRoom() {
-  for (const roomId in rooms) {
-    if (rooms[roomId].players.length < 2) {
-      return roomId;
-    }
-  }
-  // Crear nueva si todas están llenas
-  const newRoom = `room${roomCounter++}`;
-  rooms[newRoom] = { players: [] };
-  return newRoom;
-}
-
-// ================================
-// ⚡ Conexión Socket.IO
-// ================================
 io.on("connection", (socket) => {
-  console.log("🔌 Nuevo jugador conectado");
+  console.log("✅ Nuevo jugador conectado:", socket.id);
 
-  socket.on("playerJoined", (playerName) => {
-    const roomId = findRoom();
-    socket.join(roomId);
+  // Cuando un jugador se une
+  socket.on("joinGame", (playerName) => {
+    socket.playerName = playerName;
 
-    const player = { id: socket.id, name: playerName, move: null };
-    rooms[roomId].players.push(player);
+    if (waitingPlayer) {
+      // Crear sala con 2 jugadores
+      const roomId = `${waitingPlayer.id}#${socket.id}`;
+      socket.join(roomId);
+      waitingPlayer.join(roomId);
 
-    console.log(`👤 ${playerName} entró a ${roomId}`);
+      games[roomId] = {
+        players: [waitingPlayer.playerName, socket.playerName],
+        moves: {},
+      };
 
-    // Avisar al jugador sus datos
-    socket.emit("roomAssigned", { roomId });
+      // Avisar a ambos
+      io.to(roomId).emit("opponentFound", (name) =>
+        name === socket.playerName ? waitingPlayer.playerName : socket.playerName
+      );
 
-    // Avisar a todos en la sala
-    io.to(roomId).emit(
-      "updatePlayers",
-      rooms[roomId].players.map((p) => p.name)
-    );
+      // Para cada jugador, mandamos el nombre del rival
+      io.to(waitingPlayer.id).emit("opponentFound", socket.playerName);
+      io.to(socket.id).emit("opponentFound", waitingPlayer.playerName);
 
-    // Si ya hay 2 jugadores, avisar que la partida empieza
-    if (rooms[roomId].players.length === 2) {
-      io.to(roomId).emit("gameStart", {
-        players: rooms[roomId].players.map((p) => p.name),
-      });
+      console.log(
+        `🎮 Sala creada: ${waitingPlayer.playerName} vs ${socket.playerName}`
+      );
+
+      waitingPlayer = null; // reset
+    } else {
+      // Esperando un rival
+      waitingPlayer = socket;
+      console.log(`${playerName} esperando un rival...`);
     }
   });
 
-  // Recibir jugada
+  // Jugada de un jugador
   socket.on("playerMove", ({ name, move }) => {
-    let roomId;
-    for (const r in rooms) {
-      if (rooms[r].players.find((p) => p.id === socket.id)) {
-        roomId = r;
-        break;
-      }
-    }
-    if (!roomId) return;
+    const roomId = [...socket.rooms].find((r) => r !== socket.id);
+    if (!roomId || !games[roomId]) return;
 
-    const room = rooms[roomId];
-    const player = room.players.find((p) => p.id === socket.id);
-    player.move = move;
+    games[roomId].moves[name] = move;
 
-    // Avisar al oponente de la jugada
-    socket.to(roomId).emit("opponentMove", move);
+    // Si ambos jugadores ya hicieron su jugada
+    if (
+      games[roomId].moves[games[roomId].players[0]] &&
+      games[roomId].moves[games[roomId].players[1]]
+    ) {
+      const p1 = games[roomId].players[0];
+      const p2 = games[roomId].players[1];
+      const move1 = games[roomId].moves[p1];
+      const move2 = games[roomId].moves[p2];
 
-    // Revisar si ambos ya jugaron
-    if (room.players.length === 2 && room.players.every((p) => p.move)) {
-      const [p1, p2] = room.players;
-      let winner = "draw";
-
+      let winner = "empate";
       if (
-        (p1.move === "piedra" && p2.move === "tijera") ||
-        (p1.move === "papel" && p2.move === "piedra") ||
-        (p1.move === "tijera" && p2.move === "papel")
+        (move1 === "piedra" && move2 === "tijera") ||
+        (move1 === "papel" && move2 === "piedra") ||
+        (move1 === "tijera" && move2 === "papel")
       ) {
-        winner = p1.name;
-      } else if (
-        (p2.move === "piedra" && p1.move === "tijera") ||
-        (p2.move === "papel" && p1.move === "piedra") ||
-        (p2.move === "tijera" && p1.move === "papel")
-      ) {
-        winner = p2.name;
+        winner = p1;
+      } else if (move1 !== move2) {
+        winner = p2;
       }
 
-      io.to(roomId).emit("roundResult", { winner });
+      io.to(roomId).emit("roundResult", {
+        playerMove: move1,
+        opponentMove: move2,
+        winner,
+      });
 
-      // Reiniciar movimientos
-      room.players.forEach((p) => (p.move = null));
+      // Reset jugadas
+      games[roomId].moves = {};
     }
   });
 
-  // Cuando un jugador se desconecta
+  // Desconexión
   socket.on("disconnect", () => {
-    let roomId;
-    for (const r in rooms) {
-      if (rooms[r].players.find((p) => p.id === socket.id)) {
-        roomId = r;
-        break;
-      }
+    console.log("❌ Jugador desconectado:", socket.playerName || socket.id);
+
+    if (waitingPlayer && waitingPlayer.id === socket.id) {
+      waitingPlayer = null;
     }
-    if (!roomId) return;
 
-    const room = rooms[roomId];
-    room.players = room.players.filter((p) => p.id !== socket.id);
-
-    io.to(roomId).emit(
-      "updatePlayers",
-      room.players.map((p) => p.name)
-    );
-
-    console.log("❌ Jugador desconectado");
-
-    // Si la sala queda vacía, eliminarla
-    if (room.players.length === 0) {
-      delete rooms[roomId];
-      console.log(`🗑️ Sala ${roomId} eliminada`);
+    // Eliminar al jugador de su sala
+    for (const roomId in games) {
+      if (games[roomId].players.includes(socket.playerName)) {
+        io.to(roomId).emit("opponentFound", "Desconectado");
+        delete games[roomId];
+      }
     }
   });
 });
 
-// ================================
-// 🚀 Iniciar servidor
-// ================================
-const PORT = process.env.PORT || 8080;
+// Iniciar servidor
 server.listen(PORT, () => {
-  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
 
