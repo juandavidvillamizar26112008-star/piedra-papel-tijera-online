@@ -1,307 +1,129 @@
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  margin: 0;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  overflow-x: hidden;
 }
 
 .container {
-  background: rgba(0, 0, 0, 0.75);
-  border-radius: 20px;
-  padding: 30px 40px;
-  max-width: 450px;
-  width: 100%;
   text-align: center;
-  box-shadow: 0 0 30px #00ffffaa;
-  position: relative;
-}
-
-/* Screens */
-.screen {
-  display: none;
-  animation: fadeIn 0.8s ease forwards;
-}
-
-.screen.active {
-  display: block;
-}
-
-/* Login */
-#loginScreen h1 {
-  font-size: 2.8rem;
-  margin-bottom: 10px;
-  text-shadow: 0 0 10px #00ffffaa;
-}
-
-#loginScreen p {
-  margin-bottom: 20px;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-#playerNameInput {
-  width: 80%;
-  padding: 12px 15px;
-  font-size: 1.2rem;
-  border-radius: 12px;
-  border: none;
-  outline: none;
-  margin-bottom: 20px;
-  box-shadow: inset 0 0 8px #00ffffaa;
-  background: #0a1f2d;
-  color: #00ffff;
-  font-weight: 700;
-  text-align: center;
-  transition: box-shadow 0.3s ease;
-}
-
-#playerNameInput:focus {
-  box-shadow: 0 0 15px #00ffff;
-}
-
-#startBtn {
-  background: #00ffff;
-  color: #000;
-  font-weight: 700;
-  font-size: 1.2rem;
-  padding: 12px 30px;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  box-shadow: 0 0 20px #00ffffaa;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-#startBtn:disabled {
-  background: #004d4d;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-#startBtn:not(:disabled):hover {
-  background: #00e5e5;
-  transform: scale(1.05);
-}
-
-/* Game Header */
-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  text-shadow: 0 0 8px #00ffffaa;
-}
-
-/* Scoreboard */
-.scoreboard {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 25px;
-}
-
-.score {
-  background: #004d4d;
+  padding: 2rem;
+  max-width: 400px;
+  background: rgba(0,0,0,0.3);
   border-radius: 15px;
-  padding: 15px 25px;
-  width: 45%;
-  box-shadow: 0 0 15px #00ffffaa inset;
+  box-shadow: 0 0 20px #000000aa;
 }
 
-.score h3 {
-  font-weight: 700;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 5px #00000088;
 }
 
-.score span {
-  font-size: 3rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-shadow: 0 0 15px #00ffffcc;
+h2 {
+  margin-bottom: 1.5rem;
 }
 
-/* Choices */
 .choices {
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 30px;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .choice-btn {
-  background: linear-gradient(145deg, #003f3f, #006666);
+  background: #fff;
   border: none;
-  border-radius: 20px;
-  padding: 20px 25px;
-  width: 100px;
-  height: 120px;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  font-size: 1.5rem;
   cursor: pointer;
-  color: #00ffff;
-  font-weight: 700;
-  font-size: 1.1rem;
+  color: #333;
+  box-shadow: 0 4px 6px #00000055;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 0 10px #00ffffaa,
-    inset 0 0 15px #00ffffcc;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  perspective: 800px;
   user-select: none;
-  position: relative;
 }
 
-.choice-btn .icon {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 10px;
-  transform-style: preserve-3d;
-  transition: transform 0.5s ease;
-}
-
-/* Piedra (rock) 3D style */
-.icon.rock {
-  background: linear-gradient(145deg, #555, #222);
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  box-shadow:
-    inset 5px 5px 10px #888,
-    inset -5px -5px 10px #111;
-}
-
-/* Papel (paper) 3D style */
-.icon.paper {
-  background: linear-gradient(145deg, #eee, #ccc);
-  border-radius: 10px;
-  box-shadow:
-    inset 3px 3px 8px #bbb,
-    inset -3px -3px 8px #fff;
-  position: relative;
-}
-
-.icon.paper::before {
-  content: "";
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  width: 35px;
-  height: 40px;
-  background: linear-gradient(145deg, #ddd, #bbb);
-  border-radius: 5px;
-  box-shadow: inset 2px 2px 5px #aaa;
-  transform: rotate(10deg);
-}
-
-/* Tijera (scissors) 3D style */
-.icon.scissors {
-  position: relative;
-  width: 60px;
-  height: 60px;
-}
-
-.icon.scissors::before,
-.icon.scissors::after {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 50px;
-  background: linear-gradient(145deg, #bbb, #888);
-  border-radius: 6px;
-  top: 5px;
-  left: 24px;
-  box-shadow: inset 2px 2px 5px #666;
-  transform-origin: center;
-  transition: background 0.3s ease;
-}
-
-.icon.scissors::before {
-  transform: rotate(45deg);
-}
-
-.icon.scissors::after {
-  transform: rotate(-45deg);
-}
-
-/* Hover effect */
-.choice-btn:hover .icon,
-.choice-btn:focus .icon {
-  transform: rotateY(360deg);
-  box-shadow: 0 0 20px #00ffffcc;
-}
-
-.choice-btn:hover,
-.choice-btn:focus {
+.choice-btn:hover:not(:disabled) {
   transform: scale(1.1);
-  box-shadow:
-    0 0 20px #00ffffcc,
-    inset 0 0 25px #00ffffcc;
-  outline: none;
+  box-shadow: 0 6px 10px #000000aa;
 }
 
-/* Result */
+.choice-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .result {
-  font-size: 1.3rem;
-  min-height: 70px;
-  margin-bottom: 20px;
-  font-weight: 700;
-  text-shadow: 0 0 10px #00ffffcc;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 0 15px 5px #fff;
+  animation: glow 1s ease-in-out infinite alternate;
 }
 
-/* Reset button */
-.reset-btn {
-  background: #00ffff;
+.result.hidden {
+  display: none;
+}
+
+.result p {
+  font-size: 1.2rem;
+}
+
+.result h3 {
+  margin-top: 1rem;
+  font-size: 1.8rem;
+}
+
+.result-gana {
+  background-color: #4caf50cc;
+  color: white;
+}
+
+.result-pierde {
+  background-color: #f44336cc;
+  color: white;
+}
+
+.result-empate {
+  background-color: #ffeb3bcc;
+  color: #333;
+}
+
+#play-again {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
   border: none;
-  border-radius: 30px;
-  padding: 12px 35px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #000;
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 0 25px #00ffffcc;
-  transition: background 0.3s ease, transform 0.2s ease;
+  background-color: #333;
+  color: white;
+  transition: background-color 0.3s ease;
 }
 
-.reset-btn:hover,
-.reset-btn:focus {
-  background: #00e5e5;
-  transform: scale(1.05);
-  outline: none;
+#play-again:hover {
+  background-color: #555;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
+.scoreboard {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 2px #00000088;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .container {
-    max-width: 320px;
-    padding: 20px;
+@keyframes glow {
+  from {
+    box-shadow: 0 0 15px 5px #fff;
   }
-  .choice-btn {
-    width: 80px;
-    height: 100px;
-    font-size: 1rem;
-  }
-  .choice-btn .icon {
-    width: 50px;
-    height: 50px;
-  }
-  .score span {
-    font-size: 2.5rem;
+  to {
+    box-shadow: 0 0 25px 10px #fff;
   }
 }
