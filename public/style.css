@@ -1,3 +1,4 @@
+/* style.css */
 /* Reset y configuración global */
 *,
 *::before,
@@ -27,18 +28,15 @@ body {
   --accent-color: #FF5722;
   --bg-color: #fff;
   --text-color: #333;
-  --header-height: 60px;
   --transition-speed: 0.3s;
 }
 
-/* Estilos del header */
+/* Header */
 header {
   background: var(--primary-color);
   color: #fff;
   padding: 20px;
   text-align: center;
-  position: relative;
-  z-index: 10;
 }
 
 header h1 {
@@ -62,7 +60,7 @@ nav a:hover {
   color: var(--accent-color);
 }
 
-/* Contenedores principales */
+/* Contenedores y Secciones */
 .container {
   width: 90%;
   max-width: 1200px;
@@ -70,7 +68,6 @@ nav a:hover {
   padding: 20px;
 }
 
-/* Secciones */
 section {
   margin-bottom: 40px;
   background: var(--bg-color);
@@ -79,7 +76,7 @@ section {
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos de la sección de login */
+/* Login Section */
 #login-section {
   text-align: center;
 }
@@ -106,7 +103,7 @@ section {
   outline: none;
 }
 
-/* Botones generales */
+/* Botones */
 button {
   padding: 10px 20px;
   background: var(--primary-color);
@@ -123,28 +120,29 @@ button:hover {
   transform: scale(1.05);
 }
 
-/* Botón para reiniciar y limpiar */
 #reset-score,
 #restart-game,
 #clear-history {
   background: var(--accent-color);
 }
+
 #reset-score:hover,
 #restart-game:hover,
 #clear-history:hover {
   background: #e64a19;
 }
 
-/* Sección del juego */
+/* Game Section */
 #game-section {
   display: none;
 }
+
 #game-section h2 {
   text-align: center;
   margin-bottom: 20px;
 }
 
-/* Marcador */
+/* Scoreboard */
 #scoreboard {
   display: flex;
   justify-content: space-between;
@@ -171,7 +169,7 @@ button:hover {
   font-weight: bold;
 }
 
-/* Área de juego */
+/* Game Board */
 #game-board {
   display: flex;
   flex-wrap: wrap;
@@ -230,7 +228,7 @@ button:hover {
   color: var(--primary-color);
 }
 
-/* Estilos para el canvas de animaciones */
+/* Canvas de Animación */
 #animation-section {
   text-align: center;
   margin-top: 20px;
@@ -242,7 +240,7 @@ canvas {
   background: #eaeaea;
 }
 
-/* Sección del chat (modo online) */
+/* Chat Section */
 #chat-section {
   display: none;
   margin-top: 20px;
@@ -285,7 +283,7 @@ canvas {
   margin-left: 5px;
 }
 
-/* Sección de historial de partidas */
+/* Historial de Partidas */
 #stats-section {
   display: none;
   margin-top: 20px;
@@ -313,7 +311,7 @@ table th {
   color: #fff;
 }
 
-/* Modal para el tutorial */
+/* Modal (Tutorial) */
 .modal {
   display: none;
   position: fixed;
@@ -365,11 +363,10 @@ footer {
   color: #ccc;
   text-align: center;
   padding: 20px;
-  position: relative;
   margin-top: 40px;
 }
 
-/* Animaciones generales */
+/* Animaciones Generales */
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
@@ -380,7 +377,7 @@ footer {
   animation: pulse 1s infinite;
 }
 
-/* Media queries para dispositivos móviles */
+/* Responsive para móviles */
 @media (max-width: 768px) {
   header h1 {
     font-size: 1.8rem;
@@ -415,5 +412,3 @@ footer {
     width: 95%;
   }
 }
-
-
