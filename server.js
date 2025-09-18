@@ -1,121 +1,89 @@
 // ================================
-// 📦 Dependencias
+// 📌 server.js - Piedra, Papel o Tijera Online
 // ================================
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 
-// ================================
-// 🚀 Configuración del servidor
-// ================================
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
-// Servir archivos estáticos (tu index.html, style.css, script.js, música, etc.)
+// Servir archivos estáticos (public/)
 app.use(express.static(path.join(__dirname, "public")));
 
 // ================================
 // 👥 Gestión de jugadores
 // ================================
-let waitingPlayer = null;
-let games = {}; // pares de jugadores {roomId: {players: [], moves: {}}}
+let players = {};
+let moves = {};
 
-// ================================
-// ⚡ Conexión de sockets
-// ================================
+// Cuando un jugador se conecta
 io.on("connection", (socket) => {
   console.log("🔌 Un jugador se conectó:", socket.id);
 
-  // Cuando un jugador entra con su nombre
+  // Cuando entra al juego con su nombre
   socket.on("playerJoined", (name) => {
-    socket.data.name = name;
+    players[socket.id] = name;
+    console.log(`✅ ${name} se unió al juego`);
 
-    if (waitingPlayer) {
-      // Crear sala nueva
-      const roomId = `${waitingPlayer.id}-${socket.id}`;
-      games[roomId] = {
-        players: [waitingPlayer, socket],
-        moves: {},
-      };
+    // Avisar a los demás que hay un nuevo jugador
+    socket.broadcast.emit("message", `${name} se ha conectado`);
+  });
 
-      waitingPlayer.join(roomId);
-      socket.join(roomId);
+  // Cuando un jugador hace su jugada
+  socket.on("playerMove", (data) => {
+    moves[socket.id] = { name: data.name, move: data.move };
+    console.log(`🎮 ${data.name} eligió: ${data.move}`);
 
-      console.log(`🎮 Nueva sala creada: ${roomId}`);
+    // Avisar a los demás de la jugada
+    socket.broadcast.emit("opponentMove", data.move);
 
-      // Avisar a ambos jugadores que tienen oponente
-      io.to(roomId).emit("roundResult", {
-        winner: "draw",
-        message: "¡El juego ha comenzado!",
-      });
-
-      waitingPlayer = null;
-    } else {
-      waitingPlayer = socket;
-      console.log(`🕒 ${name} está esperando un oponente...`);
+    // Ver si ya ambos jugadores hicieron jugada
+    if (Object.keys(moves).length === 2) {
+      evaluarGanador();
+      moves = {}; // Reset para la siguiente ronda
     }
   });
 
-  // Jugada de un jugador
-  socket.on("playerMove", ({ name, move }) => {
-    const roomId = [...socket.rooms].find((r) => r !== socket.id);
-    if (!roomId || !games[roomId]) return;
-
-    games[roomId].moves[name] = move;
-
-    // Avisar al oponente que este jugador ya jugó
-    socket.to(roomId).emit("opponentMove", move);
-
-    // Si los dos ya jugaron
-    if (Object.keys(games[roomId].moves).length === 2) {
-      const players = games[roomId].players.map((p) => p.data.name);
-      const [p1, p2] = players;
-      const m1 = games[roomId].moves[p1];
-      const m2 = games[roomId].moves[p2];
-
-      let winner = "draw";
-      if (
-        (m1 === "rock" && m2 === "scissors") ||
-        (m1 === "paper" && m2 === "rock") ||
-        (m1 === "scissors" && m2 === "paper")
-      ) {
-        winner = p1;
-      } else if (m1 !== m2) {
-        winner = p2;
-      }
-
-      // Avisar resultado a la sala
-      io.to(roomId).emit("roundResult", { winner });
-
-      // Reiniciar jugadas
-      games[roomId].moves = {};
-    }
-  });
-
-  // Desconexión
+  // Cuando un jugador se desconecta
   socket.on("disconnect", () => {
     console.log("❌ Jugador desconectado:", socket.id);
-
-    if (waitingPlayer && waitingPlayer.id === socket.id) {
-      waitingPlayer = null;
-    }
-
-    // Buscar si estaba en un juego
-    for (let roomId in games) {
-      if (games[roomId].players.some((p) => p.id === socket.id)) {
-        io.to(roomId).emit("roundResult", {
-          winner: "draw",
-          message: "El oponente se desconectó 😢",
-        });
-        delete games[roomId];
-      }
+    if (players[socket.id]) {
+      socket.broadcast.emit("message", `${players[socket.id]} salió del juego`);
+      delete players[socket.id];
     }
   });
 });
+
+// ================================
+// 🏆 Función para evaluar ganador
+// ================================
+function evaluarGanador() {
+  const ids = Object.keys(moves);
+  const player1 = moves[ids[0]];
+  const player2 = moves[ids[1]];
+
+  let winner = "draw";
+
+  if (player1.move === player2.move) {
+    winner = "draw";
+  } else if (
+    (player1.move === "piedra" && player2.move === "tijera") ||
+    (player1.move === "papel" && player2.move === "piedra") ||
+    (player1.move === "tijera" && player2.move === "papel")
+  ) {
+    winner = player1.name;
+  } else {
+    winner = player2.name;
+  }
+
+  // Mandar resultado a ambos jugadores
+  io.emit("roundResult", { winner });
+}
 
 // ================================
 // 🚀 Iniciar servidor
@@ -123,3 +91,4 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
   console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });
+
