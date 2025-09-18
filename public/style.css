@@ -1,4 +1,4 @@
-/* Reset básico */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
@@ -7,59 +7,133 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
   color: #fff;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
+  overflow-x: hidden;
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 20px;
   padding: 30px 40px;
-  max-width: 400px;
+  max-width: 450px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 30px #00ffffaa;
+  position: relative;
 }
 
-h1 {
-  font-weight: 700;
+/* Screens */
+.screen {
+  display: none;
+  animation: fadeIn 0.8s ease forwards;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* Login */
+#loginScreen h1 {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px #00ffffaa;
+}
+
+#loginScreen p {
   margin-bottom: 20px;
-  font-size: 2.5rem;
-  letter-spacing: 2px;
-  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
+#playerNameInput {
+  width: 80%;
+  padding: 12px 15px;
+  font-size: 1.2rem;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  margin-bottom: 20px;
+  box-shadow: inset 0 0 8px #00ffffaa;
+  background: #0a1f2d;
+  color: #00ffff;
+  font-weight: 700;
+  text-align: center;
+  transition: box-shadow 0.3s ease;
+}
+
+#playerNameInput:focus {
+  box-shadow: 0 0 15px #00ffff;
+}
+
+#startBtn {
+  background: #00ffff;
+  color: #000;
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 0 20px #00ffffaa;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#startBtn:disabled {
+  background: #004d4d;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#startBtn:not(:disabled):hover {
+  background: #00e5e5;
+  transform: scale(1.05);
+}
+
+/* Game Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-shadow: 0 0 8px #00ffffaa;
+}
+
+/* Scoreboard */
 .scoreboard {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .score {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  background: #004d4d;
+  border-radius: 15px;
   padding: 15px 25px;
   width: 45%;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+  box-shadow: 0 0 15px #00ffffaa inset;
 }
 
-.score h2 {
-  font-weight: 600;
-  font-size: 1.2rem;
+.score h3 {
+  font-weight: 700;
   margin-bottom: 10px;
+  font-size: 1.2rem;
 }
 
 .score span {
-  font-size: 2.5rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 0 0 15px #00ffffcc;
 }
 
+/* Choices */
 .choices {
   display: flex;
   justify-content: space-around;
@@ -67,79 +141,167 @@ h1 {
 }
 
 .choice-btn {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(145deg, #003f3f, #006666);
   border: none;
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 20px 25px;
-  font-size: 2.5rem;
+  width: 100px;
+  height: 120px;
   cursor: pointer;
-  color: #fff;
-  width: 90px;
-  height: 90px;
+  color: #00ffff;
+  font-weight: 700;
+  font-size: 1.1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow:
+    0 0 10px #00ffffaa,
+    inset 0 0 15px #00ffffcc;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  perspective: 800px;
   user-select: none;
+  position: relative;
 }
 
-.choice-btn span {
-  font-size: 1rem;
-  margin-top: 8px;
-  font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+.choice-btn .icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+/* Piedra (rock) 3D style */
+.icon.rock {
+  background: linear-gradient(145deg, #555, #222);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow:
+    inset 5px 5px 10px #888,
+    inset -5px -5px 10px #111;
+}
+
+/* Papel (paper) 3D style */
+.icon.paper {
+  background: linear-gradient(145deg, #eee, #ccc);
+  border-radius: 10px;
+  box-shadow:
+    inset 3px 3px 8px #bbb,
+    inset -3px -3px 8px #fff;
+  position: relative;
+}
+
+.icon.paper::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  width: 35px;
+  height: 40px;
+  background: linear-gradient(145deg, #ddd, #bbb);
+  border-radius: 5px;
+  box-shadow: inset 2px 2px 5px #aaa;
+  transform: rotate(10deg);
+}
+
+/* Tijera (scissors) 3D style */
+.icon.scissors {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.icon.scissors::before,
+.icon.scissors::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 50px;
+  background: linear-gradient(145deg, #bbb, #888);
+  border-radius: 6px;
+  top: 5px;
+  left: 24px;
+  box-shadow: inset 2px 2px 5px #666;
+  transform-origin: center;
+  transition: background 0.3s ease;
+}
+
+.icon.scissors::before {
+  transform: rotate(45deg);
+}
+
+.icon.scissors::after {
+  transform: rotate(-45deg);
+}
+
+/* Hover effect */
+.choice-btn:hover .icon,
+.choice-btn:focus .icon {
+  transform: rotateY(360deg);
+  box-shadow: 0 0 20px #00ffffcc;
 }
 
 .choice-btn:hover,
 .choice-btn:focus {
-  background: #fff;
-  color: #764ba2;
   transform: scale(1.1);
+  box-shadow:
+    0 0 20px #00ffffcc,
+    inset 0 0 25px #00ffffcc;
   outline: none;
-  box-shadow: 0 6px 20px rgba(255,255,255,0.6);
 }
 
+/* Result */
 .result {
-  font-size: 1.2rem;
-  min-height: 60px;
+  font-size: 1.3rem;
+  min-height: 70px;
   margin-bottom: 20px;
-  font-weight: 600;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  font-weight: 700;
+  text-shadow: 0 0 10px #00ffffcc;
 }
 
+/* Reset button */
 .reset-btn {
-  background: #764ba2;
+  background: #00ffff;
   border: none;
-  border-radius: 25px;
-  padding: 12px 30px;
-  font-size: 1rem;
+  border-radius: 30px;
+  padding: 12px 35px;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #fff;
+  color: #000;
   cursor: pointer;
-  transition: background 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 0 25px #00ffffcc;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .reset-btn:hover,
 .reset-btn:focus {
-  background: #667eea;
+  background: #00e5e5;
+  transform: scale(1.05);
   outline: none;
-  box-shadow: 0 6px 20px rgba(102,126,234,0.8);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
 }
 
 /* Responsive */
-@media (max-width: 450px) {
+@media (max-width: 480px) {
   .container {
+    max-width: 320px;
     padding: 20px;
   }
   .choice-btn {
-    width: 70px;
-    height: 70px;
-    font-size: 2rem;
+    width: 80px;
+    height: 100px;
+    font-size: 1rem;
   }
-  .choice-btn span {
-    font-size: 0.9rem;
+  .choice-btn .icon {
+    width: 50px;
+    height: 50px;
+  }
+  .score span {
+    font-size: 2.5rem;
   }
 }
