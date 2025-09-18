@@ -1,0 +1,174 @@
+/* 🎮 Estilos generales */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Orbitron', sans-serif;
+  background: linear-gradient(135deg, #0d1b2a, #1b263b);
+  color: #fff;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Pantallas */
+.screen {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Título */
+.title {
+  font-size: 3rem;
+  color: #0ff;
+  text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+  margin-bottom: 20px;
+}
+
+/* Input nombre */
+#playerNameInput {
+  padding: 12px;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Botones */
+button {
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin: 10px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px #0ff;
+}
+
+#startBtn {
+  background: #0ff;
+  color: #000;
+}
+
+/* Zona de juego */
+#gameScreen {
+  flex-direction: column;
+  width: 90%;
+  max-width: 800px;
+}
+
+#welcomeMsg {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #ff00ff;
+  text-shadow: 0 0 15px #ff00ff;
+}
+
+/* Puntos */
+#scoreBoard {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+#scoreBoard p {
+  font-size: 1.5rem;
+  color: #0ff;
+  text-shadow: 0 0 10px #0ff;
+}
+
+/* Área del juego */
+#gameArea {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.playerSide h3 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.choice {
+  font-size: 4rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  box-shadow: 0 0 15px #ff0;
+  transition: all 0.3s ease;
+}
+
+.choice.glow {
+  animation: glowAnim 1s infinite alternate;
+}
+
+@keyframes glowAnim {
+  from { box-shadow: 0 0 15px #ff0; }
+  to { box-shadow: 0 0 30px #f0f; }
+}
+
+.vs {
+  font-size: 2rem;
+  color: #ff0;
+  text-shadow: 0 0 10px #ff0, 0 0 20px #f0f;
+}
+
+/* Botones de jugadas */
+#controls {
+  margin-top: 20px;
+}
+
+.moveBtn {
+  background: #ff00ff;
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.moveBtn:hover {
+  background: #ff55ff;
+}
+
+/* Texto resultado */
+#resultText {
+  font-size: 1.5rem;
+  margin-top: 15px;
+  color: #0ff;
+  text-shadow: 0 0 10px #0ff;
+}
+
+/* Botón música */
+#musicBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #0ff;
+  color: #000;
+  font-size: 1rem;
+  padding: 10px 20px;
+}
+

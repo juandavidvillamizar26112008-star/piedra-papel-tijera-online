@@ -1,0 +1,16 @@
+{
+  "name": "piedra-papel-tijera-online",
+  "version": "1.0.0",
+  "description": "Piedra Papel Tijera online - Glitch ready",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.5"
+  },
+  "engines": {
+    "node": ">=16.x"
+  }
+}
