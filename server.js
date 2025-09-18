@@ -1,94 +1,64 @@
 // ================================
-// 📌 server.js - Piedra, Papel o Tijera Online
+// 📌 Piedra, Papel o Tijera - Servidor
 // ================================
+
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const socketIo = require("socket.io");
 const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketIo(server);
 
-const PORT = process.env.PORT || 8080;
-
-// Servir archivos estáticos (public/)
+// Servir archivos estáticos (index.html, style.css, script.js)
 app.use(express.static(path.join(__dirname, "public")));
 
-// ================================
-// 👥 Gestión de jugadores
-// ================================
+// Lista de jugadores conectados
 let players = {};
-let moves = {};
 
-// Cuando un jugador se conecta
+// ================================
+// ⚡ Conexión de jugadores
+// ================================
 io.on("connection", (socket) => {
-  console.log("🔌 Un jugador se conectó:", socket.id);
+  console.log("🟢 Nuevo jugador conectado:", socket.id);
 
-  // Cuando entra al juego con su nombre
+  // Guardar nombre del jugador
   socket.on("playerJoined", (name) => {
     players[socket.id] = name;
     console.log(`✅ ${name} se unió al juego`);
 
-    // Avisar a los demás que hay un nuevo jugador
-    socket.broadcast.emit("message", `${name} se ha conectado`);
+    // Avisar a todos los jugadores la lista actualizada
+    io.emit("updatePlayers", Object.values(players));
   });
 
-  // Cuando un jugador hace su jugada
+  // Recibir jugada de un jugador
   socket.on("playerMove", (data) => {
-    moves[socket.id] = { name: data.name, move: data.move };
     console.log(`🎮 ${data.name} eligió: ${data.move}`);
 
-    // Avisar a los demás de la jugada
+    // Reenviar a los demás jugadores
     socket.broadcast.emit("opponentMove", data.move);
 
-    // Ver si ya ambos jugadores hicieron jugada
-    if (Object.keys(moves).length === 2) {
-      evaluarGanador();
-      moves = {}; // Reset para la siguiente ronda
-    }
+    // 👇 Aquí puedes meter lógica de cálculo de ganador si quieres
+    // Por ahora solo reenviamos la jugada
   });
 
-  // Cuando un jugador se desconecta
+  // Jugador se desconecta
   socket.on("disconnect", () => {
     console.log("❌ Jugador desconectado:", socket.id);
+
     if (players[socket.id]) {
-      socket.broadcast.emit("message", `${players[socket.id]} salió del juego`);
       delete players[socket.id];
+      // Avisar a todos los jugadores que alguien salió
+      io.emit("updatePlayers", Object.values(players));
     }
   });
 });
-
-// ================================
-// 🏆 Función para evaluar ganador
-// ================================
-function evaluarGanador() {
-  const ids = Object.keys(moves);
-  const player1 = moves[ids[0]];
-  const player2 = moves[ids[1]];
-
-  let winner = "draw";
-
-  if (player1.move === player2.move) {
-    winner = "draw";
-  } else if (
-    (player1.move === "piedra" && player2.move === "tijera") ||
-    (player1.move === "papel" && player2.move === "piedra") ||
-    (player1.move === "tijera" && player2.move === "papel")
-  ) {
-    winner = player1.name;
-  } else {
-    winner = player2.name;
-  }
-
-  // Mandar resultado a ambos jugadores
-  io.emit("roundResult", { winner });
-}
 
 // ================================
 // 🚀 Iniciar servidor
 // ================================
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });
-
