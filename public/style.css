@@ -1,126 +1,418 @@
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+/* Reset y configuración global */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   margin: 0;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 0;
 }
 
-.container {
-  text-align: center;
-  padding: 2rem;
-  max-width: 400px;
-  background: rgba(0,0,0,0.3);
-  border-radius: 15px;
-  box-shadow: 0 0 20px #000000aa;
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
 }
 
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 5px #00000088;
-}
-
-#join-section {
-  margin-bottom: 1rem;
-}
-
-#room-input {
-  padding: 0.5rem;
-  font-size: 1rem;
-  width: 60%;
-  border-radius: 8px;
-  border: none;
-  margin-right: 0.5rem;
-}
-
-#join-btn {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background-color: #4caf50;
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-#join-btn:hover {
-  background-color: #45a049;
-}
-
-#status {
-  margin-bottom: 1rem;
-  font-weight: bold;
-  min-height: 1.5rem;
-}
-
-#choices {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.choice-btn {
-  background: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
-  font-size: 1.5rem;
-  cursor: pointer;
+body {
+  font-family: 'Roboto', sans-serif;
+  background: #f9f9f9;
   color: #333;
-  box-shadow: 0 4px 6px #00000055;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Variables CSS */
+:root {
+  --primary-color: #007BFF;
+  --secondary-color: #0056b3;
+  --accent-color: #FF5722;
+  --bg-color: #fff;
+  --text-color: #333;
+  --header-height: 60px;
+  --transition-speed: 0.3s;
+}
+
+/* Estilos del header */
+header {
+  background: var(--primary-color);
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+header h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+nav {
+  margin-top: 10px;
+}
+
+nav a {
+  color: #fff;
+  margin: 0 15px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-speed);
+}
+
+nav a:hover {
+  color: var(--accent-color);
+}
+
+/* Contenedores principales */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Secciones */
+section {
+  margin-bottom: 40px;
+  background: var(--bg-color);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos de la sección de login */
+#login-section {
+  text-align: center;
+}
+
+#login-section h2 {
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+
+#login-section p {
+  margin-bottom: 15px;
+}
+
+#login-section input[type="text"] {
+  width: 80%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border var(--transition-speed);
+}
+
+#login-section input[type="text"]:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+/* Botones generales */
+button {
+  padding: 10px 20px;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--transition-speed), transform var(--transition-speed);
+  font-size: 1rem;
+}
+
+button:hover {
+  background: var(--secondary-color);
+  transform: scale(1.05);
+}
+
+/* Botón para reiniciar y limpiar */
+#reset-score,
+#restart-game,
+#clear-history {
+  background: var(--accent-color);
+}
+#reset-score:hover,
+#restart-game:hover,
+#clear-history:hover {
+  background: #e64a19;
+}
+
+/* Sección del juego */
+#game-section {
+  display: none;
+}
+#game-section h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Marcador */
+#scoreboard {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  user-select: none;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.choice-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 6px 10px #000000aa;
+.score {
+  background: #f0f0f0;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  flex: 1;
+  margin: 5px;
 }
 
-.choice-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+.score h3 {
+  margin-bottom: 5px;
+}
+
+.score p {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Área de juego */
+#game-board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.choice-section {
+  flex: 1;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.choice {
+  background: none;
+  border: none;
+  margin: 10px;
+  cursor: pointer;
+  transition: transform var(--transition-speed), filter var(--transition-speed);
+}
+
+.choice img {
+  width: 80px;
+  height: 80px;
+  display: block;
+  margin: auto;
+  transition: transform var(--transition-speed);
+}
+
+.choice span {
+  display: block;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.choice:hover img {
+  transform: rotate(10deg);
+  filter: brightness(1.1);
+}
+
+#result-area {
+  flex: 1;
+  text-align: center;
+  margin: 10px;
+}
+
+#result-area h3 {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
 }
 
 #result {
-  margin-top: 1rem;
-  padding: 1.5rem;
-  border-radius: 15px;
-  box-shadow: 0 0 15px 5px #fff;
-  animation: glow 1s ease-in-out infinite alternate;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--primary-color);
 }
 
-#play-again {
-  margin-top: 1rem;
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 10px;
+/* Estilos para el canvas de animaciones */
+#animation-section {
+  text-align: center;
+  margin-top: 20px;
+}
+
+canvas {
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  background: #eaeaea;
+}
+
+/* Sección del chat (modo online) */
+#chat-section {
+  display: none;
+  margin-top: 20px;
+}
+
+#chat-section h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+#chat-box {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+#chat-messages {
+  height: 150px;
+  overflow-y: auto;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+#chat-messages p {
+  margin-bottom: 8px;
+  word-wrap: break-word;
+}
+
+#chat-input {
+  width: 75%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#chat-send {
+  padding: 10px 15px;
+  margin-left: 5px;
+}
+
+/* Sección de historial de partidas */
+#stats-section {
+  display: none;
+  margin-top: 20px;
+}
+
+#stats-section h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+table th {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+/* Modal para el tutorial */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.7);
+  animation: fadeIn var(--transition-speed) ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: var(--bg-color);
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  animation: slideDown var(--transition-speed) ease-out;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-50px); }
+  to { transform: translateY(0); }
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
   cursor: pointer;
-  background-color: #333;
-  color: white;
-  transition: background-color 0.3s ease;
+  transition: color var(--transition-speed);
 }
 
-#play-again:hover {
-  background-color: #555;
+.close:hover {
+  color: var(--accent-color);
 }
 
-@keyframes glow {
-  from {
-    box-shadow: 0 0 15px 5px #fff;
+/* Footer */
+footer {
+  background: #333;
+  color: #ccc;
+  text-align: center;
+  padding: 20px;
+  position: relative;
+  margin-top: 40px;
+}
+
+/* Animaciones generales */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 1s infinite;
+}
+
+/* Media queries para dispositivos móviles */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.8rem;
   }
-  to {
-    box-shadow: 0 0 25px 10px #fff;
+  nav a {
+    margin: 0 10px;
+    font-size: 0.9rem;
+  }
+  #scoreboard {
+    flex-direction: column;
+  }
+  .score {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  #game-board {
+    flex-direction: column;
+  }
+  .choice {
+    margin: 10px auto;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  #login-section input[type="text"] {
+    width: 95%;
+  }
+  .modal-content {
+    width: 95%;
   }
 }
 
