@@ -1,131 +1,117 @@
-/* Fuente retro arcade */
+/* General */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Press Start 2P', cursive;
-  background: linear-gradient(135deg, #1e1e2f, #2b2b40);
-  color: #fff;
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+  color: #f8f8f2;
   text-align: center;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.container {
-  width: 95%;
-  max-width: 900px;
+  margin: 0;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 4px solid #ffcc00;
-  border-radius: 12px;
-  box-shadow: 0 0 25px #ffcc00;
 }
 
-/* 🎮 Título */
-.title {
-  font-size: 22px;
+h1.title {
+  font-size: 2.5em;
+  margin-bottom: 20px;
   color: #ffcc00;
-  text-shadow: 2px 2px #000;
-  margin-bottom: 25px;
+  text-shadow: 2px 2px 0 #000;
 }
 
-/* Entrada de nombre */
-.name-input {
-  margin: 20px 0;
+.screen {
+  display: none;
 }
 
+.screen.active {
+  display: block;
+}
+
+/* Input nombre */
 .name-input input {
   padding: 10px;
-  font-size: 12px;
   border: 2px solid #ffcc00;
-  border-radius: 8px;
-  outline: none;
-  text-align: center;
+  border-radius: 5px;
+  font-size: 1em;
+  margin-right: 10px;
 }
 
 .name-input button {
-  padding: 10px 18px;
-  margin-left: 10px;
-  font-size: 12px;
+  padding: 10px 15px;
   background: #ffcc00;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
+  font-weight: bold;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .name-input button:hover {
   background: #ffaa00;
 }
 
-/* Música */
-.music-btn {
+/* Botón música */
+#musicBtn {
   margin: 15px 0;
-  padding: 10px 18px;
+  padding: 8px 15px;
+  border-radius: 5px;
   background: #444;
   color: #fff;
-  border: 2px solid #ffcc00;
-  border-radius: 8px;
+  border: none;
   cursor: pointer;
-  transition: 0.3s;
 }
 
-.music-btn:hover {
-  background: #ffcc00;
-  color: #000;
+#musicBtn:hover {
+  background: #666;
 }
 
-/* Área del juego */
-.game-area {
+/* Juego */
+#scoreBoard {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin: 30px 0;
+  margin: 20px 0;
 }
 
-.player-section, .rival-section {
-  width: 40%;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 10px;
-  border: 2px solid #ffcc00;
-  box-shadow: inset 0 0 10px #ffcc00;
+.playerSide {
+  margin: 0 30px;
+}
+
+.choice {
+  font-size: 3em;
+  margin: 10px 0;
 }
 
 .vs {
-  font-size: 20px;
+  font-size: 2em;
+  margin: 0 20px;
   color: #ff4444;
-  text-shadow: 2px 2px #000;
+  font-weight: bold;
 }
 
-/* Botones de jugada */
-.buttons {
-  margin-top: 25px;
+/* Botones jugada */
+#controls {
+  margin: 20px 0;
 }
 
-.btn {
-  padding: 15px 25px;
-  margin: 10px;
-  font-size: 12px;
-  background: #222;
-  color: #fff;
-  border: 3px solid #ffcc00;
-  border-radius: 10px;
+.moveBtn {
+  font-size: 1.1em;
+  padding: 10px 20px;
+  margin: 0 10px;
+  border-radius: 8px;
+  border: none;
   cursor: pointer;
-  transition: transform 0.2s, background 0.3s;
+  background: #333;
+  color: #fff;
+  transition: 0.2s;
 }
 
-.btn:hover {
+.moveBtn:hover {
   background: #ffcc00;
   color: #000;
-  transform: scale(1.1);
 }
 
-/* Estado del juego */
-#estado {
-  margin-top: 30px;
-  font-size: 16px;
-  color: #00ff99;
-  text-shadow: 1px 1px #000;
+/* Glow animación */
+.glow {
+  animation: glowEffect 0.8s ease;
+}
+
+@keyframes glowEffect {
+  0% { text-shadow: 0 0 10px #ffcc00; }
+  100% { text-shadow: none; }
 }
