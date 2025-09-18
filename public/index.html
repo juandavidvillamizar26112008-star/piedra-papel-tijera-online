@@ -4,68 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piedra, Papel o Tijera Online</title>
-  
-  <!-- Fuente arcade retro -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  
-  <!-- Archivo de estilos -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Título -->
-    <h1 class="title">✊ ✋ ✌ Piedra, Papel o Tijera Online</h1>
-
-    <!-- Nombre de usuario -->
+  <!-- Pantalla inicial -->
+  <div id="loginScreen" class="screen active">
+    <h1 class="title">✊✋✌️ Piedra, Papel o Tijera Online</h1>
     <div class="name-input">
-      <input type="text" id="nombre" placeholder="Escribe tu nombre...">
-      <button id="comenzar">Comenzar</button>
+      <input type="text" id="playerNameInput" placeholder="Escribe tu nombre...">
+      <button id="startBtn">Comenzar</button>
     </div>
+  </div>
 
-    <!-- Bienvenida -->
-    <h2 id="bienvenida">Bienvenido, jugador!</h2>
+  <!-- Pantalla del juego -->
+  <div id="gameScreen" class="screen">
+    <h2 id="welcomeMsg">Bienvenido, jugador!</h2>
 
-    <!-- Música -->
-    <button id="toggleMusic" class="music-btn">🎵 Música: OFF</button>
-    <audio id="bgMusic" loop>
-      <source src="music.mp3" type="audio/mpeg">
-    </audio>
+    <!-- Botón música -->
+    <button id="musicBtn">🎵 Música: OFF</button>
 
-    <!-- Área del juego -->
-    <div class="game-area">
-      <!-- Jugador -->
-      <div class="player-section">
-        <h3>Tú</h3>
-        <p id="tu-eleccion">❓</p>
-        <p id="tu-puntos">Tus puntos: 0</p>
+    <!-- Marcador -->
+    <div id="scoreBoard">
+      <div class="playerSide">
+        <h3 id="playerLabel">Tú</h3>
+        <div id="playerChoice" class="choice">❓</div>
+        <p id="playerScore">Tus puntos: 0</p>
       </div>
 
-      <!-- Versus -->
       <div class="vs">⚡ VS ⚡</div>
 
-      <!-- Rival -->
-      <div class="rival-section">
-        <h3>Rival</h3>
-        <p id="rival-eleccion">❓</p>
-        <p id="rival-puntos">Puntos Rival: 0</p>
-        <p id="rival-nombre"></p>
+      <div class="playerSide">
+        <h3 id="opponentLabel">Rival</h3>
+        <div id="opponentChoice" class="choice">❓</div>
+        <p id="opponentScore">Puntos Rival: 0</p>
       </div>
     </div>
 
     <!-- Botones de jugada -->
-    <div class="buttons">
-      <button class="btn" data-jugada="piedra">✊ Piedra</button>
-      <button class="btn" data-jugada="papel">✋ Papel</button>
-      <button class="btn" data-jugada="tijera">✌ Tijera</button>
+    <div id="controls">
+      <button class="moveBtn" data-move="piedra">✊ Piedra</button>
+      <button class="moveBtn" data-move="papel">✋ Papel</button>
+      <button class="moveBtn" data-move="tijera">✌️ Tijera</button>
     </div>
 
-    <!-- Estado -->
-    <h3 id="estado">Esperando jugada...</h3>
+    <p id="resultText">Esperando jugada...</p>
   </div>
 
-  <!-- Script del cliente -->
+  <!-- Música -->
+  <audio id="bgMusic" loop autoplay>
+    <source src="music.mp3" type="audio/mpeg">
+    Tu navegador no soporta audio.
+  </audio>
+
+  <!-- Librería socket.io -->
   <script src="/socket.io/socket.io.js"></script>
+  <!-- Script del juego -->
   <script src="script.js"></script>
 </body>
 </html>
+
 
