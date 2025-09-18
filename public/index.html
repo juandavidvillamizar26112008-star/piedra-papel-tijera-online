@@ -1,63 +1,58 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Piedra, Papel o Tijera Online</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Piedra Papel Tijera Online</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Pantalla inicial para poner el nombre -->
+  <!-- ============================= -->
+  <!-- 🚪 Pantalla de inicio -->
+  <!-- ============================= -->
   <div id="loginScreen" class="screen active">
-    <h1 class="title">✊✋✌️ Piedra, Papel o Tijera</h1>
-    <input type="text" id="playerNameInput" placeholder="Escribe tu nombre...">
-    <button id="startBtn">Entrar al juego</button>
+    <h1>✊✋✌️ Piedra, Papel o Tijera Online</h1>
+    <input type="text" id="playerNameInput" placeholder="Ingresa tu nombre" />
+    <button id="startBtn">Comenzar</button>
   </div>
 
-  <!-- Pantalla del juego -->
+  <!-- ============================= -->
+  <!-- 🎮 Pantalla del juego -->
+  <!-- ============================= -->
   <div id="gameScreen" class="screen">
-    <h2 id="welcomeMsg">Bienvenido, jugador</h2>
+    <h2 id="welcomeMsg"></h2>
+    <button id="musicBtn">🎵 Música: OFF</button>
 
-    <div id="scoreBoard">
-      <p id="playerScore">Tus puntos: 0</p>
-      <p id="opponentScore">Puntos rival: 0</p>
-    </div>
-
-    <div id="gameArea">
-      <div class="playerSide">
-        <h3 id="playerLabel">Tú</h3>
-        <div id="playerChoice" class="choice">❓</div>
+    <div class="game-area">
+      <div class="player-area">
+        <h3>Tú</h3>
+        <p id="playerChoice">❓</p>
+        <p id="playerScore">Tus puntos: 0</p>
       </div>
 
       <div class="vs">⚡ VS ⚡</div>
 
-      <div class="playerSide">
+      <div class="player-area">
         <h3 id="opponentLabel">Rival</h3>
-        <div id="opponentChoice" class="choice">❓</div>
+        <p id="opponentChoice">❓</p>
+        <p id="opponentScore">Puntos Rival: 0</p>
       </div>
     </div>
 
-    <div id="controls">
-      <button class="moveBtn" data-move="rock">✊ Piedra</button>
-      <button class="moveBtn" data-move="paper">✋ Papel</button>
-      <button class="moveBtn" data-move="scissors">✌️ Tijera</button>
+    <div class="controls">
+      <button class="moveBtn" data-move="piedra">✊ Piedra</button>
+      <button class="moveBtn" data-move="papel">✋ Papel</button>
+      <button class="moveBtn" data-move="tijera">✌️ Tijera</button>
     </div>
 
-    <p id="resultText">Elige tu jugada...</p>
+    <h2 id="resultText">Esperando jugada...</h2>
   </div>
 
-  <!-- Botón música -->
-  <button id="musicBtn">🎵 Música: ON</button>
-
-  <!-- Música -->
-  <audio id="bgMusic" loop autoplay>
-    <source src="https://www.bensound.com/bensound-music/bensound-dubstep.mp3" type="audio/mpeg">
-    Tu navegador no soporta audio.
-  </audio>
-
-  <!-- Librería socket.io -->
+  <!-- ============================= -->
+  <!-- 📦 Scripts -->
+  <!-- ============================= -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- Script del juego -->
   <script src="script.js"></script>
 </body>
 </html>
+
