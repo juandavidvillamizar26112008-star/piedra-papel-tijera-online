@@ -1,75 +1,458 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Snake Multijugador</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Juego Piedra, Papel o Tijera Extendido</title>
+  <!-- Importación de hojas de estilo y fuentes externas -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Socket.io para el modo online -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Estilos adicionales inline para demostración -->
   <style>
     body {
-      background: #222;
-      color: white;
-      font-family: monospace;
-      text-align: center;
       margin: 0;
       padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: #f9f9f9;
+      color: #333;
     }
-    #game-container {
-      margin: 20px auto;
-      width: 400px;
-      position: relative;
+    header {
+      background: #007BFF;
+      color: white;
+      padding: 20px;
+      text-align: center;
     }
-    canvas {
-      background: #111;
-      display: block;
+    nav a {
+      color: white;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
-      border: 2px solid #555;
+      padding: 20px;
     }
-    #status {
-      margin-top: 10px;
-      font-size: 1.2rem;
+    section {
+      margin-bottom: 40px;
     }
-    #scoreboard {
-      margin-top: 10px;
-      font-size: 1rem;
-    }
-    #join-section {
+    #login-section, #game-section, #chat-section, #stats-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
       margin-top: 20px;
     }
-    #room-input {
-      padding: 5px;
-      font-size: 1rem;
-      width: 150px;
-      border-radius: 5px;
-      border: none;
+    #scoreboard {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
     }
-    #join-btn {
-      padding: 5px 10px;
-      font-size: 1rem;
-      border-radius: 5px;
+    .score {
+      text-align: center;
+    }
+    .choice {
+      background: transparent;
       border: none;
+      margin: 10px;
       cursor: pointer;
-      background: #4caf50;
-      color: white;
-      margin-left: 5px;
+      transition: transform 0.2s;
     }
-    #join-btn:hover {
-      background: #45a049;
+    .choice:hover {
+      transform: scale(1.1);
+    }
+    #result-area {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #result {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    /* Modal de Tutorial */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: rgba(0,0,0,0.7);
+    }
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 500px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    /* Estilos de la tabla de historial */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #007BFF;
+      color: white;
+    }
+    /* Canvas para animaciones */
+    canvas {
+      border: 1px solid #ccc;
+      background: #eaeaea;
+      display: block;
+      margin: 0 auto;
+    }
+    footer {
+      background: #333;
+      color: #ccc;
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>Snake Multijugador</h1>
-  <div id="join-section">
-    <input type="text" id="room-input" placeholder="Código de sala" />
-    <button id="join-btn">Unirse</button>
-  </div>
-  <div id="status"></div>
-  <div id="game-container" style="display:none;">
-    <canvas id="game" width="400" height="400"></canvas>
-    <div id="scoreboard"></div>
-  </div>
+  <header>
+    <div class="container">
+      <h1>Juego Piedra, Papel o Tijera Extendido</h1>
+      <nav>
+        <a href="#" id="menu-offline">Modo Offline</a>
+        <a href="#" id="menu-online">Modo Online</a>
+        <a href="#" id="menu-tutorial">Tutorial</a>
+      </nav>
+    </div>
+  </header>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+  <main class="container">
+    <!-- Sección de Inicio/Ingreso -->
+    <section id="login-section">
+      <h2>Inicio de Sesión</h2>
+      <p>Ingresa tu nombre para comenzar a jugar.</p>
+      <input type="text" id="player-name" placeholder="Tu Nombre">
+      <div style="margin-top: 15px;">
+        <button id="start-offline">Jugar vs Computadora</button>
+        <button id="start-online">Jugar Online</button>
+      </div>
+    </section>
+
+    <!-- Sección del Juego -->
+    <section id="game-section" style="display:none;">
+      <h2>Partida en Curso</h2>
+      <div id="scoreboard">
+        <div class="score">
+          <h3>Victorias</h3>
+          <p id="wins">0</p>
+        </div>
+        <div class="score">
+          <h3>Derrotas</h3>
+          <p id="losses">0</p>
+        </div>
+        <div class="score">
+          <h3>Empates</h3>
+          <p id="draws">0</p>
+        </div>
+        <button id="reset-score">Reiniciar Marcador</button>
+      </div>
+      <!-- Área de Selección -->
+      <div id="game-board">
+        <div class="choice-section">
+          <h3>Elige tu opción:</h3>
+          <button class="choice" data-choice="piedra">
+            <img src="images/piedra.png" alt="Piedra" width="80" height="80">
+            <br>
+            <span>Piedra</span>
+          </button>
+          <button class="choice" data-choice="papel">
+            <img src="images/papel.png" alt="Papel" width="80" height="80">
+            <br>
+            <span>Papel</span>
+          </button>
+          <button class="choice" data-choice="tijera">
+            <img src="images/tijera.png" alt="Tijera" width="80" height="80">
+            <br>
+            <span>Tijera</span>
+          </button>
+        </div>
+        <div id="result-area">
+          <h3>Resultado</h3>
+          <p id="result">Esperando jugada...</p>
+        </div>
+      </div>
+      <!-- Sección de Animación -->
+      <section id="animation-section">
+        <h3>Animación en Juego</h3>
+        <canvas id="gameCanvas" width="400" height="200"></canvas>
+      </section>
+      <!-- Botón de reinicio del Juego -->
+      <div style="text-align: center; margin-top: 20px;">
+        <button id="restart-game">Reiniciar Juego Completo</button>
+      </div>
+    </section>
+
+    <!-- Sección del Chat para Modo Online -->
+    <section id="chat-section" style="display:none;">
+      <h2>Chat de Partida</h2>
+      <div id="chat-box">
+        <div id="chat-messages" style="height:150px; overflow-y:auto; border:1px solid #ddd; padding:10px;"></div>
+        <div style="margin-top: 10px;">
+          <input type="text" id="chat-input" placeholder="Escribe un mensaje...">
+          <button id="chat-send">Enviar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal del Tutorial -->
+    <div id="tutorial-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="tutorial-close">&times;</span>
+        <h2>Tutorial del Juego</h2>
+        <p>Bienvenido al juego Piedra, Papel o Tijera Extendido. Aquí aprenderás cómo jugar y aprovechar todas las funciones:</p>
+        <ul>
+          <li><strong>Modo Offline:</strong> Juega contra la computadora. Su jugada se elige al azar.</li>
+          <li><strong>Modo Online:</strong> Juega en tiempo real contra otros jugadores y utiliza el chat para comunicarte.</li>
+          <li><strong>Marcador y Historial:</strong> Se actualizan estadísticas de victorias, derrotas y empates; además se guarda un historial de cada ronda.</li>
+          <li><strong>Animaciones:</strong> Disfruta de animaciones en el canvas mientras esperas resultados.</li>
+          <li><strong>Reinicio:</strong> Puedes reiniciar el marcador o el juego completo en cualquier momento.</li>
+        </ul>
+        <p>Utiliza las opciones del menú para cambiar de modo o ver este tutorial nuevamente.</p>
+      </div>
+    </div>
+
+    <!-- Sección de Historial y Estadísticas -->
+    <section id="stats-section" style="display:none;">
+      <h2>Historial de Partidas</h2>
+      <p>A continuación se muestra el detalle de cada ronda:</p>
+      <table id="history-table">
+        <thead>
+          <tr>
+            <th>Ronda</th>
+            <th>Jugador</th>
+            <th>Opción</th>
+            <th>Oponente</th>
+            <th>Opción</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Las filas se agregarán dinámicamente -->
+        </tbody>
+      </table>
+      <div style="text-align:center; margin-top:15px;">
+        <button id="clear-history">Limpiar Historial</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Piedra, Papel o Tijera Extendido. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Lógica y funciones del juego -->
+  <script>
+    // Variables globales y estado del juego
+    let playerName = "";
+    let gameMode = "";
+    let round = 1;
+    let history = [];
+    let socket = null;
+    let canvas, ctx, animationFrame;
+
+    // Inicializar Canvas para animaciones
+    function initCanvas() {
+      canvas = document.getElementById("gameCanvas");
+      ctx = canvas.getContext("2d");
+      let posX = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#007BFF";
+        ctx.beginPath();
+        ctx.arc(50 + (posX % (canvas.width - 100)), canvas.height / 2, 20, 0, Math.PI * 2);
+        ctx.fill();
+        posX += 2;
+        animationFrame = requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    // Mostrar Modal del Tutorial
+    const tutorialModal = document.getElementById("tutorial-modal");
+    const tutorialClose = document.getElementById("tutorial-close");
+    document.getElementById("menu-tutorial").addEventListener("click", () => {
+      tutorialModal.style.display = "block";
+    });
+    tutorialClose.addEventListener("click", () => {
+      tutorialModal.style.display = "none";
+    });
+    window.addEventListener("click", e => {
+      if(e.target === tutorialModal) tutorialModal.style.display = "none";
+    });
+
+    // Manejo de inicio de juego en modo Offline y Online
+    document.getElementById("start-offline").addEventListener("click", startOffline);
+    document.getElementById("start-online").addEventListener("click", startOnline);
+
+    function startOffline() {
+      playerName = document.getElementById("player-name").value.trim();
+      if(!playerName) return alert("Por favor ingresa tu nombre.");
+      gameMode = "offline";
+      switchToGame();
+      initCanvas();
+    }
+
+    function startOnline() {
+      playerName = document.getElementById("player-name").value.trim();
+      if(!playerName) return alert("Por favor ingresa tu nombre.");
+      gameMode = "online";
+      socket = io();
+      socket.emit("playerJoined", { name: playerName });
+      socket.on("gameResult", data => {
+        displayResult(data.message);
+        if(data.result) updateScore(data.result);
+        addHistory(round++, playerName, data.playerChoice || "-", data.opponentName || "-", data.opponentChoice || "-", data.message);
+      });
+      socket.on("chatMessage", data => {
+        addChatMessage(data.name, data.message);
+      });
+      switchToGame();
+      initCanvas();
+      document.getElementById("chat-section").style.display = "block";
+      document.getElementById("stats-section").style.display = "block";
+    }
+
+    // Transición de la sección de login a la sección del juego
+    function switchToGame() {
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("game-section").style.display = "block";
+    }
+
+    // Actualizar el marcador según el resultado
+    function updateScore(result) {
+      const winsElem = document.getElementById("wins");
+      const lossesElem = document.getElementById("losses");
+      const drawsElem = document.getElementById("draws");
+      if(result === "win") {
+        winsElem.textContent = parseInt(winsElem.textContent) + 1;
+      } else if(result === "loss") {
+        lossesElem.textContent = parseInt(lossesElem.textContent) + 1;
+      } else if(result === "draw") {
+        drawsElem.textContent = parseInt(drawsElem.textContent) + 1;
+      }
+    }
+
+    // Función para jugar en modo offline
+    function playOffline(choice) {
+      const options = ["piedra", "papel", "tijera"];
+      const compChoice = options[Math.floor(Math.random() * 3)];
+      const result = determineWinner(choice, compChoice);
+      displayResult("Seleccionaste " + choice + ", la computadora eligió " + compChoice + ". " + result);
+      addHistory(round++, playerName, choice, "Computadora", compChoice, result);
+    }
+
+    // Determinar ganador
+    function determineWinner(choice1, choice2) {
+      if (choice1 === choice2) {
+        updateScore("draw");
+        return "Empate";
+      }
+      if ((choice1 === "piedra" && choice2 === "tijera") ||
+          (choice1 === "papel" && choice2 === "piedra") ||
+          (choice1 === "tijera" && choice2 === "papel")) {
+        updateScore("win");
+        return "Ganaste";
+      } else {
+        updateScore("loss");
+        return "Perdiste";
+      }
+    }
+
+    // Mostrar el resultado del juego en pantalla
+    function displayResult(msg) {
+      document.getElementById("result").textContent = msg;
+    }
+
+    // Agregar una entrada al historial de partidas y actualizar la tabla
+    function addHistory(ronda, player, playerChoice, opponent, opponentChoice, res) {
+      history.push({ ronda, player, playerChoice, opponent, opponentChoice, res });
+      const tbody = document.querySelector("#history-table tbody");
+      const row = document.createElement("tr");
+      row.innerHTML = "<td>" + ronda + "</td><td>" + player + "</td><td>" + playerChoice + "</td><td>" + opponent + "</td><td>" + opponentChoice + "</td><td>" + res + "</td>";
+      tbody.appendChild(row);
+    }
+
+    // Limpiar historial
+    document.getElementById("clear-history").addEventListener("click", () => {
+      history = [];
+      document.querySelector("#history-table tbody").innerHTML = "";
+    });
+
+    // Reiniciar marcador
+    document.getElementById("reset-score").addEventListener("click", () => {
+      document.getElementById("wins").textContent = 0;
+      document.getElementById("losses").textContent = 0;
+      document.getElementById("draws").textContent = 0;
+    });
+
+    // Botón para reiniciar el juego completo
+    document.getElementById("restart-game").addEventListener("click", restartGame);
+    function restartGame() {
+      document.getElementById("wins").textContent = 0;
+      document.getElementById("losses").textContent = 0;
+      document.getElementById("draws").textContent = 0;
+      document.getElementById("result").textContent = "El juego se ha reiniciado.";
+      history = [];
+      document.querySelector("#history-table tbody").innerHTML = "";
+    }
+
+    // Manejo de las elecciones del usuario
+    document.querySelectorAll(".choice").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const choice = btn.getAttribute("data-choice");
+        if (gameMode === "offline") {
+          playOffline(choice);
+        } else if (gameMode === "online") {
+          socket.emit("playerMove", { name: playerName, choice: choice });
+        }
+      });
+    });
+
+    // Lógica del chat para modo online
+    document.getElementById("chat-send").addEventListener("click", () => {
+      const message = document.getElementById("chat-input").value;
+      if (message && socket) {
+        socket.emit("chatMessage", { name: playerName, message: message });
+        addChatMessage(playerName, message);
+        document.getElementById("chat-input").value = "";
+      }
+    });
+
+    // Agregar mensaje al chat
+    function addChatMessage(name, message) {
+      const chatBox = document.getElementById("chat-messages");
+      const p = document.createElement("p");
+      p.textContent = name + ": " + message;
+      chatBox.appendChild(p);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>
+
