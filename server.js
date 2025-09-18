@@ -1,92 +1,112 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Servir carpeta "public" con index.html, script.js y styles.css
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Lista de jugadores conectados
-let players = {};
+const PORT = process.env.PORT || 3000;
 
-// ================================
-// 👤 Conexión de jugadores
-// ================================
-io.on("connection", (socket) => {
-  console.log("🔌 Nuevo jugador conectado:", socket.id);
+let waitingPlayer = null; // socket esperando para emparejar
+const rooms = {}; // { roomId: { players: [socket, socket], choices: {} } }
 
-  // Un jugador se une al juego
-  socket.on("playerJoined", (name) => {
-    players[socket.id] = { name: name, move: null };
-    console.log(`✅ Jugador ${name} se ha unido`);
+io.on('connection', (socket) => {
+  console.log(`Jugador conectado: ${socket.id}`);
 
-    // Avisar a todos los demás que llegó un rival
-    socket.broadcast.emit("opponentJoined", name);
-  });
+  socket.on('login', (playerName) => {
+    socket.playerName = playerName;
 
-  // Jugador hace una jugada
-  socket.on("playerMove", (data) => {
-    if (!players[socket.id]) return;
+    if (waitingPlayer === null) {
+      waitingPlayer = socket;
+      socket.emit('waiting', 'Esperando otro jugador...');
+    } else {
+      // Crear room nuevo
+      const roomId = `room-${socket.id}-${waitingPlayer.id}`;
+      rooms[roomId] = {
+        players: [waitingPlayer, socket],
+        choices: {}
+      };
 
-    players[socket.id].move = data.move;
-    console.log(`🎮 ${data.name} eligió ${data.move}`);
+      // Unir sockets a la room
+      waitingPlayer.join(roomId);
+      socket.join(roomId);
 
-    // Avisar a los demás la jugada
-    socket.broadcast.emit("opponentMove", data.move);
+      // Informar a ambos que la partida empieza
+      rooms[roomId].players.forEach(s => {
+        s.emit('startGame', {
+          roomId,
+          opponent: s === socket ? waitingPlayer.playerName : socket.playerName
+        });
+      });
 
-    // Buscar al otro jugador
-    const opponentId = Object.keys(players).find((id) => id !== socket.id);
-    if (opponentId && players[opponentId].move) {
-      const result = getWinner(players[socket.id], players[opponentId]);
-
-      // Enviar resultado a ambos jugadores
-      io.to(socket.id).emit("roundResult", result);
-      io.to(opponentId).emit("roundResult", result);
-
-      // Reset de jugadas para la siguiente ronda
-      players[socket.id].move = null;
-      players[opponentId].move = null;
+      waitingPlayer = null;
     }
   });
 
-  // Jugador se desconecta
-  socket.on("disconnect", () => {
-    console.log("❌ Jugador desconectado:", socket.id);
-    delete players[socket.id];
+  socket.on('play', ({ roomId, choice }) => {
+    if (!rooms[roomId]) return;
+
+    rooms[roomId].choices[socket.id] = choice;
+
+    if (Object.keys(rooms[roomId].choices).length === 2) {
+      // Ambos jugadores jugaron, decidir ganador
+      const [p1, p2] = rooms[roomId].players;
+      const c1 = rooms[roomId].choices[p1.id];
+      const c2 = rooms[roomId].choices[p2.id];
+
+      const winner = decideWinner(c1, c2);
+
+      io.to(roomId).emit('roundResult', {
+        choices: { [p1.id]: c1, [p2.id]: c2 },
+        winner // 'draw', p1.id o p2.id
+      });
+
+      // Reset elecciones para siguiente ronda
+      rooms[roomId].choices = {};
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`Jugador desconectado: ${socket.id}`);
+
+    // Limpiar si estaba esperando
+    if (waitingPlayer === socket) {
+      waitingPlayer = null;
+    }
+
+    // Buscar y limpiar room si estaba en alguna
+    for (const roomId in rooms) {
+      const room = rooms[roomId];
+      if (room.players.includes(socket)) {
+        // Informar al otro jugador
+        room.players.forEach(s => {
+          if (s !== socket) s.emit('opponentLeft');
+        });
+        delete rooms[roomId];
+        break;
+      }
+    }
   });
 });
 
-// ================================
-// 🏆 Función para decidir ganador
-// ================================
-function getWinner(p1, p2) {
-  const { name: name1, move: move1 } = p1;
-  const { name: name2, move: move2 } = p2;
-
-  if (move1 === move2) {
-    return { winner: "draw" };
-  }
+function decideWinner(c1, c2) {
+  if (c1 === c2) return 'draw';
 
   if (
-    (move1 === "piedra" && move2 === "tijera") ||
-    (move1 === "papel" && move2 === "piedra") ||
-    (move1 === "tijera" && move2 === "papel")
+    (c1 === 'piedra' && c2 === 'tijera') ||
+    (c1 === 'papel' && c2 === 'piedra') ||
+    (c1 === 'tijera' && c2 === 'papel')
   ) {
-    return { winner: name1 };
+    return 'p1';
   } else {
-    return { winner: name2 };
+    return 'p2';
   }
 }
 
-// ================================
-// 🚀 Iniciar servidor
-// ================================
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
-
-
