@@ -1,7 +1,7 @@
 {
   "name": "piedra-papel-tijera-extendido",
   "version": "1.0.0",
-  "description": "Juego de Piedra, Papel o Tijera online multijugador extendido con funcionalidades adicionales, animaciones, chat y mucho más, desarrollado con Node.js, Express y Socket.io.",
+  "description": "Juego de Piedra, Papel o Tijera online multijugador extendido con animaciones, chat y más, usando Node.js, Express y Socket.io.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
