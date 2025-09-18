@@ -1,17 +1,17 @@
 // ================================
 // 🎵 Música de fondo
 // ================================
-const music = new Audio("music.mp3"); // cambia por tu archivo de música
+const music = new Audio("music.mp3"); // tu archivo de música en /public
 music.loop = true;
 let musicPlaying = false;
 
 document.getElementById("musicBtn").addEventListener("click", () => {
   if (musicPlaying) {
     music.pause();
-    document.getElementById("musicBtn").innerText = "🎵 Activar Música";
+    document.getElementById("musicBtn").innerText = "🎵 Música: OFF";
   } else {
     music.play();
-    document.getElementById("musicBtn").innerText = "🔇 Pausar Música";
+    document.getElementById("musicBtn").innerText = "🎵 Música: ON";
   }
   musicPlaying = !musicPlaying;
 });
@@ -22,6 +22,7 @@ document.getElementById("musicBtn").addEventListener("click", () => {
 const socket = io();
 
 let playerName = "";
+let opponentName = "Rival";
 let playerChoice = "";
 let opponentChoice = "";
 let playerScore = 0;
@@ -37,7 +38,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
     return;
   }
 
-  // Cambiar pantallas
+  // Pasar a pantalla de juego
   document.getElementById("loginScreen").classList.remove("active");
   document.getElementById("gameScreen").classList.add("active");
 
@@ -56,14 +57,15 @@ moves.forEach((btn) => {
   btn.addEventListener("click", () => {
     playerChoice = btn.getAttribute("data-move");
 
-    // Mostrar jugada del jugador
+    // Mostrar jugada del jugador con animación
     const playerChoiceEl = document.getElementById("playerChoice");
     playerChoiceEl.innerText = getEmoji(playerChoice);
     playerChoiceEl.classList.add("glow");
 
-    // Enviar jugada al servidor
+    // Avisar al servidor de la jugada
     socket.emit("playerMove", { name: playerName, move: playerChoice });
 
+    // Reset glow después de 1 segundo
     setTimeout(() => {
       playerChoiceEl.classList.remove("glow");
     }, 1000);
@@ -96,33 +98,46 @@ socket.on("roundResult", (data) => {
     resultText.innerText = "🎉 ¡Ganaste esta ronda!";
     playerScore++;
   } else {
-    resultText.innerText = "💀 Perdiste esta ronda...";
+    resultText.innerText = `💀 ${opponentName} ganó la ronda...`;
     opponentScore++;
   }
 
   // Actualizar marcador
   document.getElementById("playerScore").innerText = `Tus puntos: ${playerScore}`;
-  document.getElementById("opponentScore").innerText = `Puntos rival: ${opponentScore}`;
+  document.getElementById("opponentScore").innerText = `Puntos ${opponentName}: ${opponentScore}`;
 });
 
 // ================================
-// 🤝 Mostrar nombre del rival
+// 👥 Actualizar lista de jugadores
 // ================================
 socket.on("updatePlayers", (players) => {
-  const opponent = players.find((p) => p !== playerName);
-  if (opponent) {
-    document.getElementById("opponentLabel").innerText = opponent;
+  const rival = players.find((p) => p !== playerName);
+  if (rival) {
+    opponentName = rival;
+    document.getElementById("opponentLabel").innerText = opponentName;
   }
 });
 
 // ================================
-// 🔤 Función: jugada → emoji
+// 🎮 Inicio oficial del juego (cuando ya hay 2 jugadores)
+// ================================
+socket.on("gameStart", ({ players }) => {
+  const rival = players.find((p) => p !== playerName);
+  if (rival) {
+    opponentName = rival;
+    document.getElementById("opponentLabel").innerText = opponentName;
+  }
+});
+
+// ================================
+// 🔤 Función: convertir jugada a emoji
 // ================================
 function getEmoji(move) {
   switch (move) {
-    case "rock": return "✊";
-    case "paper": return "✋";
-    case "scissors": return "✌️";
+    case "piedra": return "✊";
+    case "papel": return "✋";
+    case "tijera": return "✌️";
     default: return "❓";
   }
 }
+
