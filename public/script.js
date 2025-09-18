@@ -1,131 +1,114 @@
-// ================================
-// 🎵 Música de fondo
-// ================================
-const music = new Audio("https://www.bensound.com/bensound-music/bensound-dubstep.mp3");
-music.loop = true;
-let musicPlaying = false;
+const playerScoreSpan = document.getElementById('playerScore');
+const rivalScoreSpan = document.getElementById('rivalScore');
+const resultMessage = document.getElementById('resultMessage');
+const roundDetails = document.getElementById('roundDetails');
+const choiceButtons = document.querySelectorAll('.choice-btn');
+const resetBtn = document.getElementById('resetBtn');
 
-document.getElementById("musicBtn").addEventListener("click", () => {
-  if (musicPlaying) {
-    music.pause();
-    document.getElementById("musicBtn").innerText = "🎵 Música: OFF";
-  } else {
-    music.play();
-    document.getElementById("musicBtn").innerText = "🎵 Música: ON";
-  }
-  musicPlaying = !musicPlaying;
-});
-
-// ================================
-// ⚡ Conexión con Socket.IO
-// ================================
-const socket = io();
-
-let playerName = "";
-let playerChoice = "";
-let opponentChoice = "";
 let playerScore = 0;
-let opponentScore = 0;
-let opponentName = "Rival";
+let rivalScore = 0;
+let isPlaying = true;
 
-// ================================
-// 🚀 Inicio del juego
-// ================================
-document.getElementById("startBtn").addEventListener("click", () => {
-  playerName = document.getElementById("playerNameInput").value.trim();
-  if (playerName === "") {
-    alert("⚠️ Ingresa tu nombre para jugar");
-    return;
+const choices = ['piedra', 'papel', 'tijera'];
+
+function getRivalChoice() {
+  const randomIndex = Math.floor(Math.random() * choices.length);
+  return choices[randomIndex];
+}
+
+function determineWinner(player, rival) {
+  if (player === rival) return 'empate';
+
+  if (
+    (player === 'piedra' && rival === 'tijera') ||
+    (player === 'papel' && rival === 'piedra') ||
+    (player === 'tijera' && rival === 'papel')
+  ) {
+    return 'jugador';
+  } else {
+    return 'rival';
+  }
+}
+
+function updateScores(winner) {
+  if (winner === 'jugador') {
+    playerScore++;
+    playerScoreSpan.textContent = playerScore;
+  } else if (winner === 'rival') {
+    rivalScore++;
+    rivalScoreSpan.textContent = rivalScore;
+  }
+}
+
+function showResult(playerChoice, rivalChoice, winner) {
+  let message = '';
+  if (winner === 'empate') {
+    message = "¡Empate!";
+  } else if (winner === 'jugador') {
+    message = "¡Ganaste esta ronda!";
+  } else {
+    message = "¡Perdiste esta ronda!";
   }
 
-  // Pasar a pantalla de juego
-  document.getElementById("loginScreen").classList.remove("active");
-  document.getElementById("gameScreen").classList.add("active");
+  resultMessage.textContent = message;
+  roundDetails.textContent = `Tú: ${playerChoice} vs Rival: ${rivalChoice}`;
+}
 
-  document.getElementById("welcomeMsg").innerText = `Bienvenido, ${playerName}!`;
+function disableChoices(disabled) {
+  choiceButtons.forEach(btn => {
+    btn.disabled = disabled;
+    if (disabled) {
+      btn.classList.add('disabled');
+    } else {
+      btn.classList.remove('disabled');
+    }
+  });
+}
 
-  // Avisar al servidor que un jugador se conectó
-  socket.emit("playerJoined", playerName);
-});
+function resetGame() {
+  playerScore = 0;
+  rivalScore = 0;
+  playerScoreSpan.textContent = playerScore;
+  rivalScoreSpan.textContent = rivalScore;
+  resultMessage.textContent = "Elige tu jugada para comenzar";
+  roundDetails.textContent = '';
+  resetBtn.hidden = true;
+  isPlaying = true;
+  disableChoices(false);
+}
 
-// ================================
-// 🎮 Selección de jugadas
-// ================================
-const moves = document.querySelectorAll(".moveBtn");
+choiceButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    if (!isPlaying) return;
 
-moves.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    playerChoice = btn.getAttribute("data-move");
+    isPlaying = false;
+    disableChoices(true);
 
-    // Mostrar jugada del jugador con animación
-    const playerChoiceEl = document.getElementById("playerChoice");
-    playerChoiceEl.innerText = getEmoji(playerChoice);
-    playerChoiceEl.classList.add("glow");
+    const playerChoice = button.dataset.choice;
+    const rivalChoice = getRivalChoice();
+    const winner = determineWinner(playerChoice, rivalChoice);
 
-    // Avisar al servidor de la jugada
-    socket.emit("playerMove", { name: playerName, move: playerChoice });
+    updateScores(winner);
+    showResult(playerChoice, rivalChoice, winner);
 
-    // Reset animación después de 1s
-    setTimeout(() => {
-      playerChoiceEl.classList.remove("glow");
-    }, 1000);
+    // Mostrar botón reiniciar si alguien llega a 5 puntos
+    if (playerScore === 5 || rivalScore === 5) {
+      resultMessage.textContent += playerScore === 5 ? " 🎉 ¡Ganaste el juego!" : " 😞 ¡Perdiste el juego!";
+      resetBtn.hidden = false;
+      disableChoices(true);
+    } else {
+      // Permitir siguiente jugada después de 1.5 segundos
+      setTimeout(() => {
+        isPlaying = true;
+        disableChoices(false);
+        resultMessage.textContent = "Elige tu jugada para continuar";
+        roundDetails.textContent = '';
+      }, 1500);
+    }
   });
 });
 
-// ================================
-// 📡 Escuchar jugada del oponente
-// ================================
-socket.on("opponentMove", (move) => {
-  opponentChoice = move;
-  const opponentChoiceEl = document.getElementById("opponentChoice");
-  opponentChoiceEl.innerText = getEmoji(opponentChoice);
-  opponentChoiceEl.classList.add("glow");
-
-  setTimeout(() => {
-    opponentChoiceEl.classList.remove("glow");
-  }, 1000);
-});
-
-// ================================
-// 🏆 Recibir resultado de ronda
-// ================================
-socket.on("roundResult", (data) => {
-  const resultText = document.getElementById("resultText");
-
-  if (data.winner === "draw") {
-    resultText.innerText = "🤝 ¡Empate!";
-  } else if (data.winner === playerName) {
-    resultText.innerText = "🎉 ¡Ganaste esta ronda!";
-    playerScore++;
-  } else {
-    resultText.innerText = "💀 Perdiste esta ronda...";
-    opponentScore++;
-  }
-
-  // Actualizar marcador
-  document.getElementById("playerScore").innerText = `Tus puntos: ${playerScore}`;
-  document.getElementById("opponentScore").innerText = `Puntos de ${opponentName}: ${opponentScore}`;
-});
-
-// ================================
-// 👤 Mostrar nombre del rival
-// ================================
-socket.on("opponentJoined", (name) => {
-  opponentName = name;
-  document.getElementById("opponentLabel").innerText = opponentName;
-});
-
-// ================================
-// 🔤 Función: convertir jugada a emoji
-// ================================
-function getEmoji(move) {
-  switch (move) {
-    case "piedra": return "✊";
-    case "papel": return "✋";
-    case "tijera": return "✌️";
-    default: return "❓";
-  }
-}
+resetBtn.addEventListener('click', resetGame);
 
 
 
