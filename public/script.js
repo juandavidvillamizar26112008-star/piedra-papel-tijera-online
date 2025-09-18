@@ -19,7 +19,7 @@ document.getElementById("musicBtn").addEventListener("click", () => {
 // ================================
 // ⚡ Conexión con Socket.IO
 // ================================
-const socket = io(); // Se conecta al servidor donde esté corriendo socket.io
+const socket = io();
 
 let playerName = "";
 let playerChoice = "";
@@ -37,8 +37,8 @@ document.getElementById("startBtn").addEventListener("click", () => {
     return;
   }
 
-  // Pasar a pantalla de juego
-  document.getElementById("loginScreen").classList.remove("active"); // ✅ corregido
+  // Cambiar pantallas
+  document.getElementById("loginScreen").classList.remove("active");
   document.getElementById("gameScreen").classList.add("active");
 
   document.getElementById("welcomeMsg").innerText = `Bienvenido, ${playerName}!`;
@@ -56,15 +56,14 @@ moves.forEach((btn) => {
   btn.addEventListener("click", () => {
     playerChoice = btn.getAttribute("data-move");
 
-    // Mostrar jugada del jugador con animación
+    // Mostrar jugada del jugador
     const playerChoiceEl = document.getElementById("playerChoice");
     playerChoiceEl.innerText = getEmoji(playerChoice);
     playerChoiceEl.classList.add("glow");
 
-    // Avisar al servidor de la jugada
+    // Enviar jugada al servidor
     socket.emit("playerMove", { name: playerName, move: playerChoice });
 
-    // Reset glow después de 1 segundo
     setTimeout(() => {
       playerChoiceEl.classList.remove("glow");
     }, 1000);
@@ -107,13 +106,23 @@ socket.on("roundResult", (data) => {
 });
 
 // ================================
-// 🔤 Función: convertir jugada a emoji
+// 🤝 Mostrar nombre del rival
+// ================================
+socket.on("updatePlayers", (players) => {
+  const opponent = players.find((p) => p !== playerName);
+  if (opponent) {
+    document.getElementById("opponentLabel").innerText = opponent;
+  }
+});
+
+// ================================
+// 🔤 Función: jugada → emoji
 // ================================
 function getEmoji(move) {
   switch (move) {
-    case "piedra": return "✊";
-    case "papel": return "✋";
-    case "tijera": return "✌️";
+    case "rock": return "✊";
+    case "paper": return "✋";
+    case "scissors": return "✌️";
     default: return "❓";
   }
 }
