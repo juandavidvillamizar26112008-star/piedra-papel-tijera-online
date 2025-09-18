@@ -1,29 +1,41 @@
 const express = require('express');
 const http = require('http');
-const cors = require('cors');
 const { Server } = require('socket.io');
 const path = require('path');
 
 const app = express();
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
-
 const server = http.createServer(app);
 const io = new Server(server);
 
-const choices = ['piedra', 'papel', 'tijera'];
+app.use(express.static(path.join(__dirname, 'public')));
 
-function getResult(p1Choice, p2Choice) {
-  if (p1Choice === p2Choice) return 'empate';
-  if (
-    (p1Choice === 'piedra' && p2Choice === 'tijera') ||
-    (p1Choice === 'papel' && p2Choice === 'piedra') ||
-    (p1Choice === 'tijera' && p2Choice === 'papel')
-  ) return 'gana';
-  return 'pierde';
+const GRID_SIZE = 20;
+const CANVAS_SIZE = 400;
+const TICK_RATE = 100; // ms
+
+// Estado de las salas: { roomId: { players: { socketId: playerData }, food: {x,y} } }
+const rooms = {};
+
+function randomPosition() {
+  return {
+    x: Math.floor(Math.random() * (CANVAS_SIZE / GRID_SIZE)),
+    y: Math.floor(Math.random() * (CANVAS_SIZE / GRID_SIZE))
+  };
 }
 
-const rooms = {}; // { roomId: { players: [socketId1, socketId2], choices: { socketId: choice } } }
+function createPlayer() {
+  return {
+    snake: [{ x: 5, y: 5 }],
+    direction: { x: 1, y: 0 },
+    pendingDirection: null,
+    alive: true,
+    score: 0
+  };
+}
+
+function oppositeDirection(dir1, dir2) {
+  return dir1.x === -dir2.x && dir1.y === -dir2.y;
+}
 
 io.on('connection', (socket) => {
   console.log('Usuario conectado:', socket.id);
@@ -31,33 +43,42 @@ io.on('connection', (socket) => {
   socket.on('joinRoom', (roomId) => {
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { players: [], choices: {} };
+      rooms[roomId] = { players: {}, food: randomPosition() };
     }
-    if (rooms[roomId].players.length < 2) {
-      rooms[roomId].players.push(socket.id);
-      socket.emit('joinedRoom', { roomId, playerNumber: rooms[roomId].players.length });
-      io.to(roomId).emit('roomUpdate', { playersCount: rooms[roomId].players.length });
-    } else {
+    const room = rooms[roomId];
+
+    if (Object.keys(room.players).length >= 2) {
       socket.emit('roomFull');
+      return;
+    }
+
+    room.players[socket.id] = createPlayer();
+
+    // Posicionar serpientes iniciales diferentes
+    const playerIndex = Object.keys(room.players).indexOf(socket.id);
+    if (playerIndex === 1) {
+      room.players[socket.id].snake = [{ x: 15, y: 15 }];
+      room.players[socket.id].direction = { x: -1, y: 0 };
+    }
+
+    socket.emit('joinedRoom', { roomId, playerNumber: playerIndex + 1 });
+    io.to(roomId).emit('playersUpdate', Object.keys(room.players).length);
+
+    if (Object.keys(room.players).length === 2) {
+      io.to(roomId).emit('gameStart');
+      startGameLoop(roomId);
     }
   });
 
-  socket.on('play', ({ roomId, choice }) => {
-    if (!rooms[roomId]) return;
-    rooms[roomId].choices[socket.id] = choice;
+  socket.on('changeDirection', ({ roomId, direction }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+    const player = room.players[socket.id];
+    if (!player || !player.alive) return;
 
-    if (Object.keys(rooms[roomId].choices).length === 2) {
-      const [p1, p2] = rooms[roomId].players;
-      const p1Choice = rooms[roomId].choices[p1];
-      const p2Choice = rooms[roomId].choices[p2];
-
-      const p1Result = getResult(p1Choice, p2Choice);
-      const p2Result = p1Result === 'gana' ? 'pierde' : p1Result === 'pierde' ? 'gana' : 'empate';
-
-      io.to(p1).emit('roundResult', { yourChoice: p1Choice, opponentChoice: p2Choice, result: p1Result });
-      io.to(p2).emit('roundResult', { yourChoice: p2Choice, opponentChoice: p1Choice, result: p2Result });
-
-      rooms[roomId].choices = {};
+    // Validar que no se pueda ir en dirección opuesta
+    if (!oppositeDirection(direction, player.direction)) {
+      player.pendingDirection = direction;
     }
   });
 
@@ -65,12 +86,10 @@ io.on('connection', (socket) => {
     console.log('Usuario desconectado:', socket.id);
     for (const roomId in rooms) {
       const room = rooms[roomId];
-      const index = room.players.indexOf(socket.id);
-      if (index !== -1) {
-        room.players.splice(index, 1);
-        delete room.choices[socket.id];
+      if (room.players[socket.id]) {
+        delete room.players[socket.id];
         io.to(roomId).emit('playerLeft');
-        if (room.players.length === 0) {
+        if (Object.keys(room.players).length === 0) {
           delete rooms[roomId];
         }
         break;
@@ -78,6 +97,96 @@ io.on('connection', (socket) => {
     }
   });
 });
+
+function startGameLoop(roomId) {
+  const interval = setInterval(() => {
+    const room = rooms[roomId];
+    if (!room) {
+      clearInterval(interval);
+      return;
+    }
+
+    const players = room.players;
+    if (Object.keys(players).length < 2) {
+      io.to(roomId).emit('gameOver', 'Un jugador se desconectó.');
+      clearInterval(interval);
+      return;
+    }
+
+    // Actualizar cada jugador
+    for (const id in players) {
+      const player = players[id];
+      if (!player.alive) continue;
+
+      // Cambiar dirección si hay pendiente
+      if (player.pendingDirection) {
+        player.direction = player.pendingDirection;
+        player.pendingDirection = null;
+      }
+
+      const head = player.snake[0];
+      const newHead = {
+        x: head.x + player.direction.x,
+        y: head.y + player.direction.y
+      };
+
+      // Colisiones con paredes
+      if (
+        newHead.x < 0 || newHead.x >= CANVAS_SIZE / GRID_SIZE ||
+        newHead.y < 0 || newHead.y >= CANVAS_SIZE / GRID_SIZE
+      ) {
+        player.alive = false;
+        continue;
+      }
+
+      // Colisiones con sí mismo
+      if (player.snake.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
+        player.alive = false;
+        continue;
+      }
+
+      // Colisiones con la otra serpiente
+      for (const otherId in players) {
+        if (otherId === id) continue;
+        const other = players[otherId];
+        if (other.snake.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
+          player.alive = false;
+          break;
+        }
+      }
+      if (!player.alive) continue;
+
+      player.snake.unshift(newHead);
+
+      // Comer comida
+      if (newHead.x === room.food.x && newHead.y === room.food.y) {
+        player.score++;
+        room.food = randomPosition();
+      } else {
+        player.snake.pop();
+      }
+    }
+
+    // Verificar si hay ganador
+    const alivePlayers = Object.values(players).filter(p => p.alive);
+    if (alivePlayers.length <= 1) {
+      io.to(roomId).emit('gameOver', alivePlayers.length === 1 ? '¡Jugador ganador!' : 'Empate');
+      clearInterval(interval);
+      return;
+    }
+
+    // Enviar estado a clientes
+    io.to(roomId).emit('gameState', {
+      players: Object.entries(players).map(([id, p]) => ({
+        id,
+        snake: p.snake,
+        score: p.score,
+        alive: p.alive
+      })),
+      food: room.food
+    });
+  }, TICK_RATE);
+}
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
