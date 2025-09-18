@@ -3,28 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Piedra, Papel o Tijera - Multijugador</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Snake Multijugador</title>
+  <style>
+    body {
+      background: #222;
+      color: white;
+      font-family: monospace;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #game-container {
+      margin: 20px auto;
+      width: 400px;
+      position: relative;
+    }
+    canvas {
+      background: #111;
+      display: block;
+      margin: 0 auto;
+      border: 2px solid #555;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 1.2rem;
+    }
+    #scoreboard {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+    #join-section {
+      margin-top: 20px;
+    }
+    #room-input {
+      padding: 5px;
+      font-size: 1rem;
+      width: 150px;
+      border-radius: 5px;
+      border: none;
+    }
+    #join-btn {
+      padding: 5px 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      background: #4caf50;
+      color: white;
+      margin-left: 5px;
+    }
+    #join-btn:hover {
+      background: #45a049;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Piedra, Papel o Tijera - Multijugador</h1>
-
-    <div id="join-section">
-      <input type="text" id="room-input" placeholder="Código de sala" />
-      <button id="join-btn">Unirse a sala</button>
-    </div>
-
-    <div id="status"></div>
-
-    <div id="choices" style="display:none;">
-      <button class="choice-btn" data-choice="piedra">✊ Piedra</button>
-      <button class="choice-btn" data-choice="papel">✋ Papel</button>
-      <button class="choice-btn" data-choice="tijera">✌️ Tijera</button>
-    </div>
-
-    <div id="result" style="display:none;"></div>
-    <button id="play-again" style="display:none;">Jugar otra vez</button>
+  <h1>Snake Multijugador</h1>
+  <div id="join-section">
+    <input type="text" id="room-input" placeholder="Código de sala" />
+    <button id="join-btn">Unirse</button>
+  </div>
+  <div id="status"></div>
+  <div id="game-container" style="display:none;">
+    <canvas id="game" width="400" height="400"></canvas>
+    <div id="scoreboard"></div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
