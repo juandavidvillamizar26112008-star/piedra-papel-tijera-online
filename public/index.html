@@ -3,67 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Piedra, Papel o Tijera 3D Online</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  <title>Piedra, Papel o Tijera</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
+  <div class="container">
+    <h1>Piedra, Papel o Tijera</h1>
+    <h2 id="level">Nivel: 1</h2>
 
-    <!-- Pantalla Login -->
-    <section id="loginScreen" class="screen active">
-      <h1>¡Bienvenido!</h1>
-      <p>Escribe tu nombre para comenzar</p>
-      <input type="text" id="playerNameInput" placeholder="Tu nombre" maxlength="15" autocomplete="off" />
-      <button id="startBtn" disabled>Iniciar Juego</button>
-    </section>
+    <div class="choices">
+      <button class="choice-btn" data-choice="piedra" aria-label="Piedra">✊<br>Piedra</button>
+      <button class="choice-btn" data-choice="papel" aria-label="Papel">✋<br>Papel</button>
+      <button class="choice-btn" data-choice="tijera" aria-label="Tijera">✌️<br>Tijera</button>
+    </div>
 
-    <!-- Pantalla Juego -->
-    <section id="gameScreen" class="screen">
-      <header>
-        <h2>Jugador: <span id="playerNameDisplay"></span></h2>
-        <h2>Rival: <span id="opponentNameDisplay">Esperando...</span></h2>
-      </header>
+    <div id="result" class="result hidden">
+      <p>Tu jugada: <span id="player-choice-emoji"></span></p>
+      <p>Computadora: <span id="computer-choice-emoji"></span></p>
+      <h3 id="result-text"></h3>
+      <button id="play-again">Jugar otra vez</button>
+    </div>
 
-      <section class="scoreboard">
-        <div class="score player-score">
-          <h3>Tú</h3>
-          <span id="playerScore">0</span>
-        </div>
-        <div class="score rival-score">
-          <h3>Rival</h3>
-          <span id="rivalScore">0</span>
-        </div>
-      </section>
-
-      <section class="choices">
-        <button class="choice-btn" data-choice="piedra" aria-label="Piedra">
-          <div class="icon rock"></div>
-          <span>Piedra</span>
-        </button>
-        <button class="choice-btn" data-choice="papel" aria-label="Papel">
-          <div class="icon paper"></div>
-          <span>Papel</span>
-        </button>
-        <button class="choice-btn" data-choice="tijera" aria-label="Tijera">
-          <div class="icon scissors"></div>
-          <span>Tijera</span>
-        </button>
-      </section>
-
-      <section class="result" aria-live="polite">
-        <p id="resultMessage">Esperando a que el juego comience...</p>
-        <p id="roundDetails"></p>
-      </section>
-
-      <button id="resetBtn" class="reset-btn" hidden>Reiniciar Juego</button>
-    </section>
-  </main>
-
-  <audio id="soundClick" src="sounds/click.mp3" preload="auto"></audio>
-  <audio id="soundWin" src="sounds/win.mp3" preload="auto"></audio>
-  <audio id="soundLose" src="sounds/lose.mp3" preload="auto"></audio>
-  <audio id="soundDraw" src="sounds/draw.mp3" preload="auto"></audio>
+    <div class="scoreboard">
+      <h3>Marcador</h3>
+      <p>Victorias: <span id="score-win">0</span></p>
+      <p>Derrotas: <span id="score-lose">0</span></p>
+      <p>Empates: <span id="score-tie">0</span></p>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
