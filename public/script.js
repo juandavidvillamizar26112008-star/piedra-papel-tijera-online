@@ -1,3 +1,11 @@
+const socket = io();
+
+const loginScreen = document.getElementById('loginScreen');
+const gameScreen = document.getElementById('gameScreen');
+const playerNameInput = document.getElementById('playerNameInput');
+const startBtn = document.getElementById('startBtn');
+const playerNameDisplay = document.getElementById('playerNameDisplay');
+const opponentNameDisplay = document.getElementById('opponentNameDisplay');
 const playerScoreSpan = document.getElementById('playerScore');
 const rivalScoreSpan = document.getElementById('rivalScore');
 const resultMessage = document.getElementById('resultMessage');
@@ -5,110 +13,132 @@ const roundDetails = document.getElementById('roundDetails');
 const choiceButtons = document.querySelectorAll('.choice-btn');
 const resetBtn = document.getElementById('resetBtn');
 
+const soundClick = document.getElementById('soundClick');
+const soundWin = document.getElementById('soundWin');
+const soundLose = document.getElementById('soundLose');
+const soundDraw = document.getElementById('soundDraw');
+
+let playerName = '';
+let opponentName = '';
+let roomId = null;
 let playerScore = 0;
 let rivalScore = 0;
-let isPlaying = true;
+let canPlay = false;
 
-const choices = ['piedra', 'papel', 'tijera'];
+// Habilitar botón iniciar solo si hay texto
+playerNameInput.addEventListener('input', () => {
+  startBtn.disabled = playerNameInput.value.trim().length === 0;
+});
 
-function getRivalChoice() {
-  const randomIndex = Math.floor(Math.random() * choices.length);
-  return choices[randomIndex];
-}
+// Iniciar juego y enviar login
+startBtn.addEventListener('click', () => {
+  playerName = playerNameInput.value.trim();
+  if (!playerName) return;
 
-function determineWinner(player, rival) {
-  if (player === rival) return 'empate';
+  socket.emit('login', playerName);
+  playerNameDisplay.textContent = playerName;
+  loginScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  resultMessage.textContent = 'Buscando rival...';
+});
 
-  if (
-    (player === 'piedra' && rival === 'tijera') ||
-    (player === 'papel' && rival === 'piedra') ||
-    (player === 'tijera' && rival === 'papel')
-  ) {
-    return 'jugador';
-  } else {
-    return 'rival';
-  }
-}
+// Esperando rival
+socket.on('waiting', (msg) => {
+  resultMessage.textContent = msg;
+  opponentNameDisplay.textContent = 'Esperando...';
+  canPlay = false;
+});
 
-function updateScores(winner) {
-  if (winner === 'jugador') {
-    playerScore++;
-    playerScoreSpan.textContent = playerScore;
-  } else if (winner === 'rival') {
-    rivalScore++;
-    rivalScoreSpan.textContent = rivalScore;
-  }
-}
-
-function showResult(playerChoice, rivalChoice, winner) {
-  let message = '';
-  if (winner === 'empate') {
-    message = "¡Empate!";
-  } else if (winner === 'jugador') {
-    message = "¡Ganaste esta ronda!";
-  } else {
-    message = "¡Perdiste esta ronda!";
-  }
-
-  resultMessage.textContent = message;
-  roundDetails.textContent = `Tú: ${playerChoice} vs Rival: ${rivalChoice}`;
-}
-
-function disableChoices(disabled) {
-  choiceButtons.forEach(btn => {
-    btn.disabled = disabled;
-    if (disabled) {
-      btn.classList.add('disabled');
-    } else {
-      btn.classList.remove('disabled');
-    }
-  });
-}
-
-function resetGame() {
+// Comienza la partida
+socket.on('startGame', (data) => {
+  roomId = data.roomId;
+  opponentName = data.opponent;
+  opponentNameDisplay.textContent = opponentName;
   playerScore = 0;
   rivalScore = 0;
   playerScoreSpan.textContent = playerScore;
   rivalScoreSpan.textContent = rivalScore;
-  resultMessage.textContent = "Elige tu jugada para comenzar";
+  resultMessage.textContent = '¡Partida iniciada! Elige tu jugada';
   roundDetails.textContent = '';
   resetBtn.hidden = true;
-  isPlaying = true;
-  disableChoices(false);
-}
+  canPlay = true;
+});
 
-choiceButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    if (!isPlaying) return;
-
-    isPlaying = false;
-    disableChoices(true);
-
-    const playerChoice = button.dataset.choice;
-    const rivalChoice = getRivalChoice();
-    const winner = determineWinner(playerChoice, rivalChoice);
-
-    updateScores(winner);
-    showResult(playerChoice, rivalChoice, winner);
-
-    // Mostrar botón reiniciar si alguien llega a 5 puntos
-    if (playerScore === 5 || rivalScore === 5) {
-      resultMessage.textContent += playerScore === 5 ? " 🎉 ¡Ganaste el juego!" : " 😞 ¡Perdiste el juego!";
-      resetBtn.hidden = false;
-      disableChoices(true);
-    } else {
-      // Permitir siguiente jugada después de 1.5 segundos
-      setTimeout(() => {
-        isPlaying = true;
-        disableChoices(false);
-        resultMessage.textContent = "Elige tu jugada para continuar";
-        roundDetails.textContent = '';
-      }, 1500);
-    }
+// Manejar jugada
+choiceButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!canPlay) return;
+    const choice = btn.dataset.choice;
+    soundClick.play();
+    canPlay = false;
+    socket.emit('play', { roomId, choice });
+    resultMessage.textContent = 'Esperando jugada del rival...';
   });
 });
 
-resetBtn.addEventListener('click', resetGame);
+// Resultado de la ronda
+socket.on('roundResult', (data) => {
+  const { choices, winner } = data;
+  const playerChoice = choices[socket.id];
+  const rivalSocketId = Object.keys(choices).find(id => id !== socket.id);
+  const rivalChoice = choices[rivalSocketId];
 
+  let message = '';
+  if (winner === 'draw') {
+    message = '¡Empate!';
+    soundDraw.play();
+  } else if ((winner === 'p1' && socket.id === Object.keys(choices)[0]) ||
+             (winner === 'p2' && socket.id === Object.keys(choices)[1])) {
+    message = '¡Ganaste esta ronda!';
+    playerScore++;
+    playerScoreSpan.textContent = playerScore;
+    soundWin.play();
+  } else {
+    message = '¡Perdiste esta ronda!';
+    rivalScore++;
+    rivalScoreSpan.textContent = rivalScore;
+    soundLose.play();
+  }
 
+  resultMessage.textContent = message;
+  roundDetails.textContent = `Tú: ${playerChoice} vs Rival: ${rivalChoice}`;
 
+  // Permitir jugar siguiente ronda después de 2 segundos
+  setTimeout(() => {
+    if (playerScore >= 5 || rivalScore >= 5) {
+      const finalMsg = playerScore > rivalScore ? '🎉 ¡Ganaste el juego!' : '😞 ¡Perdiste el juego!';
+      resultMessage.textContent = finalMsg;
+      resetBtn.hidden = false;
+      canPlay = false;
+    } else {
+      resultMessage.textContent = 'Elige tu jugada para la siguiente ronda';
+      roundDetails.textContent = '';
+      canPlay = true;
+    }
+  }, 2000);
+});
+
+// Rival desconectado
+socket.on('opponentLeft', () => {
+  resultMessage.textContent = 'Tu rival se desconectó. Esperando nuevo rival...';
+  opponentNameDisplay.textContent = 'Esperando...';
+  rivalScore = 0;
+  playerScore = 0;
+  playerScoreSpan.textContent = playerScore;
+  rivalScoreSpan.textContent = rivalScore;
+  canPlay = false;
+  resetBtn.hidden = true;
+});
+
+// Reiniciar juego
+resetBtn.addEventListener('click', () => {
+  playerScore = 0;
+  rivalScore = 0;
+  playerScoreSpan.textContent = playerScore;
+  rivalScoreSpan.textContent = rivalScore;
+  resultMessage.textContent = 'Buscando rival...';
+  roundDetails.textContent = '';
+  resetBtn.hidden = true;
+  canPlay = false;
+  socket.emit('login', playerName);
+});
